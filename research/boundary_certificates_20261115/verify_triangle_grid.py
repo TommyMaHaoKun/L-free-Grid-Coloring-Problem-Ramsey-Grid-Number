@@ -4,7 +4,7 @@ import json
 import lzma
 from heapq import heappush, heapreplace
 from collections import Counter
-from itertools import chain
+from itertools import chain, product
 from math import comb
 from pathlib import Path
 
@@ -54,20 +54,36 @@ def rebuild(n, budget, search, extender, jobs):
 def unpack(rule, N):
     n, d, weights, *band = rule
     Q = N-2-d*(n-2)
-    lo, hi = band if band else (0, Q//3+1)
-    assert type(lo) is int and type(hi) is int and 0 <= lo < hi <= Q//3+1
-    return n, d, weights, lo, hi, Q
+    if len(band) == 3:
+        kind, lo, hi = band
+    else:
+        kind = "min"
+        lo, hi = band if band else (0, Q//3+1)
+    assert kind in ("min", "max")
+    bound = Q//3+1 if kind == "min" else Q+1
+    assert type(lo) is int and type(hi) is int and 0 <= lo < hi <= bound
+    return n, d, weights, kind, lo, hi, Q
 
 
-def translations(Q, t):
-    return comb(Q-3*t+2, 2) if Q >= 3*t else 0
+def translation_terms(Q, kind, lo, hi):
+    """Signed lower-coordinate restrictions for the indicated translation band."""
+    terms = Counter()
+    if kind == "min":
+        terms[lo, lo, lo] += 1
+        terms[hi, hi, hi] -= 1
+    else:
+        for threshold, sign in [(hi, 1), (lo, -1)]:
+            for bits in product((0, 1), repeat=3):
+                terms[tuple(threshold*i for i in bits)] += sign*(-1)**sum(bits)
+    return [(a, b, c, v) for (a, b, c), v in terms.items() if v and a+b+c <= Q]
 
 
 def exact_incidence(N, rules, sources, keep=0):
     """Count placements at every host corner using independent row interval additions."""
     placements = {}
     for rule in rules:
-        n, d, weights, lo, hi, Q = unpack(rule, N)
+        n, d, weights, kind, lo, hi, Q = unpack(rule, N)
+        terms = translation_terms(Q, kind, lo, hi)
         _, keys, _, _ = sources[n]
         look = dict(zip(keys, weights))
         for j in range(1, n-1):
@@ -77,9 +93,8 @@ def exact_incidence(N, rules, sources, keep=0):
                     c = n-j-2-a-b
                     w = look[(j, *sorted((a, b, c)))]
                     if w:
-                        shifts[d*a+lo, d*b+lo, d*c+lo] += w
-                        if 3*hi <= Q:
-                            shifts[d*a+hi, d*b+hi, d*c+hi] -= w
+                        for u, v, t, sign in terms:
+                            shifts[d*a+u, d*b+v, d*c+t] += sign*w
     maximum = 0
     top = []
     for h, shifts in placements.items():
@@ -93,6 +108,7 @@ def exact_incidence(N, rules, sources, keep=0):
             running = 0
             for change in row[:-1]:
                 running += change
+                assert running >= 0
                 maximum = max(maximum, running)
                 if keep and running:
                     if len(top) < keep:
@@ -115,19 +131,30 @@ def verify(cert, catalogs):
         assert all(len(p) <= b for p in profiles)
         sources[n] = b, keys, multiplicity, profiles
     incidence = Counter()
+    copy_counts = {}
     total = 0
     for rule in cert["rules"]:
-        n, d, weights, lo, hi, Q = unpack(rule, N)
+        n, d, weights, kind, lo, hi, Q = unpack(rule, N)
         b, keys, multiplicity, profiles = sources[n]
         assert 1 <= d <= (N-2)//(n-2) and len(weights) == len(keys)
         assert all(type(v) is int and v >= 0 for v in weights)
         floor = min(chain([(b+1)*min(weights)], (sum(weights[i] for i in p) for p in profiles)))
-        total += floor*(translations(Q, lo)-translations(Q, hi))
+        terms = translation_terms(Q, kind, lo, hi)
+        copies = sum(sign*comb(Q-u-v-t+2, 2) for u, v, t, sign in terms)
+        region = Q, kind, lo, hi
+        if region not in copy_counts:
+            select = min if kind == "min" else max
+            copy_counts[region] = sum(
+                lo <= select(a, b, Q-a-b) < hi
+                for a in range(Q+1) for b in range(Q-a+1)
+            )
+        assert copies == copy_counts[region]
+        total += floor*copies
         for (j, a, c, e), w in zip(keys, weights):
             incidence[j*d] += multiplicity[j, a, c, e]*w
     upper = comb(N, 2)-(N-1)+(N-1)//3
     ranked = cert.get("mode") == "ranked"
-    if cert.get("mode") in ("exact", "bands", "ranked"):
+    if cert.get("mode") in ("exact", "bands", "ranked", "regions"):
         K, heaviest = exact_incidence(N, cert["rules"], sources, upper if ranked else 0)
     else:
         K, heaviest = max(incidence.values()), 0

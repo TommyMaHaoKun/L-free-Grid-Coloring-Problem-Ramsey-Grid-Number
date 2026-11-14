@@ -55,3 +55,36 @@ python verify_local_rainbows.py ./rain_search --jobs 4
 python verify_triangle_boundary.py ./rain_search ./triangle_extend --jobs 4
 python verify_triangle_boundary.py ./rain_search ./triangle_extend --target 12 --budget 6 --jobs 4
 ~~~
+
+## Exhaustive bounds on the 13-triangle
+
+The minimum on $T_{13}$ is **11**. The complete run with budget ten has no coloring, and the archived literal example attains eleven. The complete order-13 run with budget nine gives the following orbit counts.
+
+| Order | Budget | Geometric and palette orbits |
+|---:|---:|---:|
+| 7 | 3 | 68,209 |
+| 8 | 4 | 577,522 |
+| 9 | 5 | 1,469,001 |
+| 10 | 6 | 1,014,625 |
+| 11 | 7 | 411,914 |
+| 12 | 8 | 1,838 |
+| 13 | 9 | 0 |
+
+Reproduce with **python verify_triangle_boundary.py ./rain_search ./triangle_extend --target 13 --budget 9 --jobs 4**. Increase the budget to ten to reproduce the sharp lower bound. The [position-weighted grid proof](THREE_COLOR_WEIGHTED.md) uses the resulting catalogs.
+
+### Complete order-13 run at budget ten
+
+| Order | Rainbow budget | Geometric and palette orbits |
+|---|---:|---:|
+| 6 | 3 | 9,037 |
+| 7 | 4 | 209,967 |
+| 8 | 5 | 2,159,586 |
+| 9 | 6 | 6,471,235 |
+| 10 | 7 | 4,698,032 |
+| 11 | 8 | 1,644,484 |
+| 12 | 9 | 16,060 |
+| 13 | 10 | 0 |
+
+At order 13, both the boundary extensions and the interior-only branch are empty. The reference eleven-rainbow coloring thus attains the minimum.
+
+The same recurrence proves that every proper $T_{14}$ has at least eleven rainbow Ls. After the empty $T_{13}$ catalog through nine, the order-14 interior-only search with budget ten is also empty. Reproduce with **--target 14 --budget 10**. The literal example at order 14 has seventeen.
