@@ -31,3 +31,7 @@ An exhaustive count over all $3^{35}=50{,}031{,}545{,}098{,}999{,}707$ labeled w
 2. Compile **verify_462.c** as described in [the directory instructions](README.md). Run **./verify_462 --461** for the 35-letter count. The executable first checks a seven-letter case against literal enumeration. The existing no-argument invocation reproduces the previous checkpoint.
 
 The GPU discovery recount used a separate implementation and 122 six-letter prefix batches. A CPU recount split the same space into 122 branches, multiplying by the number of choices for every newly introduced color. The release checker uses different initial color symmetries, literal autocorrelation sums and portable integer arithmetic.
+
+For a parallel CPU reproduction, run **python check_461_shards.py ./verify_462 --jobs 8** (replace the executable name with the compiled path). Each of the 122 color-normalized six-letter prefixes is checked exactly once. The driver verifies the expected labeled population of each prefix and their sum.
+
+The 122-shard release run visited 128,184,944,588 partial-word nodes and excluded 50,031,545,098,999,707 labeled words.

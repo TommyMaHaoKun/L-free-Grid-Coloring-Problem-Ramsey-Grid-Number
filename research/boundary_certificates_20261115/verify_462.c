@@ -159,14 +159,54 @@ static void certificate(unsigned n, unsigned minimum_span, unsigned use_layers, 
            n,layers,length,covered,visits,cuts,remaining,base,target,base+3*target);
 }
 
+/* The shards use restricted-growth color names on the first six positions.
+   Later positions take all three physical colors. A shard represents (3)_j
+   labelings of its six-position pattern when j different colors have appeared. */
+static unsigned shard_number, selected;
+static unsigned seed_digits[6];
+static void visit_seed(unsigned depth, unsigned colors, uint64_t factor) {
+    if (depth == 6) {
+        if (shard_number++ == selected) {
+            for (unsigned j=0; j<6; ++j) {
+                Mask bit=UINT64_C(1)<<position[j];
+                for (unsigned c=0; c<3; ++c) if (c!=seed_digits[j]) forbid[c]|=bit;
+            }
+            search(6,factor,length);
+            require(remaining==0 && covered==factor*powers_of_three[length-6],
+                    "incomplete six-letter shard");
+            printf("shard=%u covered=%" PRIu64 " remaining=%" PRIu64
+                   " nodes=%" PRIu64 "\n",selected,covered,remaining,visits);
+        }
+        return;
+    }
+    for (unsigned c=0;c<smaller(3,colors+1);++c) {
+        seed_digits[depth]=c;
+        visit_seed(depth+1,colors+(c==colors),
+                   factor*(c==colors ? 3-colors : 1));
+    }
+}
+
 int main(int argc, char **argv) {
     self_test();
+    if (argc == 3 && strcmp(argv[1], "--461-shard") == 0) {
+        char *end;
+        unsigned long index=strtoul(argv[2],&end,10);
+        require(argv[2][0] && !*end && index<122,"shard index is 0 through 121");
+        selected=(unsigned)index;
+        Score base=setup(461,426);
+        layers=34; cutoff=INT64_C(3274170394);
+        require(base+3*cutoff==1,"side-461 margin");
+        covered=remaining=visits=cuts=0;
+        visit_seed(0,0,1);
+        require(shard_number==122,"six-letter color quotient");
+        return 0;
+    }
     if (argc == 2 && strcmp(argv[1], "--461") == 0) {
         /* The stricter 24-mark span uses verify_no_optimal.py at this side. */
         certificate(461,426,34,INT64_C(3274170394));
         return 0;
     }
-    require(argc == 1, "usage: verify_462 [--461]");
+    require(argc == 1, "usage: verify_462 [--461 | --461-shard INDEX]");
     certificate(463,425,10,INT64_C(1322324010));
     require(evaluate("00111111110000000000000000000000000011",10,0)
             == INT64_C(1322324010), "463 equality witness");
