@@ -23,32 +23,37 @@ def budget(histogram):
     return best+max(histogram)+sum(min(3,x) for x in histogram)
 
 
-def main():
-    audit_windows()
+def outer_twenty(rows,side,width):
     max_twice=max(budget(h) for h in combinations_with_replacement(range(BLOCK+1),4)
                   if sum(h)==BLOCK)
     baseline=sum(min(i,12) for i in range(1,BLOCK+1))
     loss=baseline-max_twice//2
     require((baseline,max_twice,loss)==(174,267,41),"20-distance inequality")
-    rows=json.loads((HERE/"four_window_runs.json").read_text())
     starts=[a for a,_,_ in rows]
-    offset=REFERENCE-SIDE
-    require(starts[0]<=offset+1 and starts[-1]>=offset+WIDTH+10,"profile coverage")
-    raw=-3*SIDE*correlation(WIDTH,0)
-    for d in range(1,WIDTH):
+    offset=REFERENCE-side
+    require(starts[0]<=offset+1 and starts[-1]>=offset+width+10,"profile coverage")
+    raw=-3*side*correlation(width,0)
+    for d in range(1,width):
         u=sum(rows[bisect_right(starts,offset+d+j)-1][1] for j in range(12))
-        raw+=2*(SIDE-d-4*u)*correlation(WIDTH,d)
+        raw+=2*(side-d-4*u)*correlation(width,d)
     centers=[]
     bonus=0
     for i in range(1,len(rows)-1):
         v,cap,_=rows[i]
         D=v-offset
         if (rows[i-1][1]==cap+1 and v-starts[i-1]>=BLOCK
-            and starts[i+1]-v>=12 and D-BLOCK>=1 and D-1<WIDTH):
+            and starts[i+1]-v>=12 and D-BLOCK>=1 and D-1<width):
             centers.append(D)
-            bonus+=8*loss*min(correlation(WIDTH,D-s) for s in range(1,BLOCK+1))
+            bonus+=8*loss*min(correlation(width,D-s) for s in range(1,BLOCK+1))
     require(all(b-a>=BLOCK for a,b in zip(centers,centers[1:])),"disjoint blocks")
-    require((len(centers),raw,bonus)==(544,-116_299_243_654_456_808_241_433_200,
+    return len(centers),raw,bonus,loss
+
+
+def main():
+    audit_windows()
+    rows=json.loads((HERE/"four_window_runs.json").read_text())
+    count,raw,bonus,loss=outer_twenty(rows,SIDE,WIDTH)
+    require((count,raw,bonus)==(544,-116_299_243_654_456_808_241_433_200,
                  128_738_682_276_347_489_324_958_496),"final exact sum")
     require(raw+bonus>0,"four-color margin")
     print(f"At least {loss} matches lost per 20 shifts, side {SIDE:,}, "

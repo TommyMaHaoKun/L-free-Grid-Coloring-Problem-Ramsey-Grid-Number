@@ -75,14 +75,11 @@ def correlation(t,d):
     return m*(m*m-1)*(m*m+1+5*d*(t+1))//30
 
 
-def main():
-    den,r,alpha=load_window(Path(sys.argv[1]) if len(sys.argv)>1 else None)
-    rows=json.loads((HERE/"four_window_runs.json").read_text())
+def verify_profile(rows,den,r,alpha,thresholds):
     offsets=[v for v,_,_ in rows]
     require(all(v<u for v,u in zip(offsets,offsets[1:])),"order of offsets")
-    require(offsets[0]<=REFERENCE-SIDE+1 and offsets[-1]>=REFERENCE-SIDE+WIDTH+10,
-            "window count covers all outer shifts and neighbors")
-    thresholds=[lower_length(k) for k in range(4600,4801)]
+    require(all(k>=l for (_,k,_),(_,l,_) in zip(rows,rows[1:])),"nested caps")
+    require(len(thresholds)==201 and all(x<y for x,y in zip(thresholds,thresholds[1:])),"Sidon threshold ordering")
     def golomb(positions):
         j=bisect_right(thresholds,positions)
         require(0<j<len(thresholds),"ordinary Sidon range")
@@ -115,6 +112,16 @@ def main():
         return k*k*weight*alpha.denominator > (p*alpha.denominator+b*alpha.numerator)*e
     for v,cap,b in rows:
         require(audit(REFERENCE-v,cap+1,b),f"failed interval witness at offset {v}")
+
+
+def main():
+    den,r,alpha=load_window(Path(sys.argv[1]) if len(sys.argv)>1 else None)
+    rows=json.loads((HERE/"four_window_runs.json").read_text())
+    offsets=[v for v,_,_ in rows]
+    require(offsets[0]<=REFERENCE-SIDE+1 and offsets[-1]>=REFERENCE-SIDE+WIDTH+10,
+            "window count covers all outer shifts and neighbors")
+    thresholds=[lower_length(k) for k in range(4600,4801)]
+    verify_profile(rows,den,r,alpha,thresholds)
     def capacity(v):return rows[bisect_right(offsets,v)-1][1]
     outer=REFERENCE-SIDE
     raw=-3*SIDE*correlation(WIDTH,0)
