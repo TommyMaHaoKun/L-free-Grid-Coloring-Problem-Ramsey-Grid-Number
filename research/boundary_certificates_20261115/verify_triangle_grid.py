@@ -2,6 +2,7 @@
 import argparse
 import json
 import lzma
+from heapq import heappush, heapreplace
 from collections import Counter
 from itertools import chain
 from math import comb
@@ -50,10 +51,23 @@ def rebuild(n, budget, search, extender, jobs):
     return words
 
 
-def exact_incidence(N, rules, sources):
+def unpack(rule, N):
+    n, d, weights, *band = rule
+    Q = N-2-d*(n-2)
+    lo, hi = band if band else (0, Q//3+1)
+    assert type(lo) is int and type(hi) is int and 0 <= lo < hi <= Q//3+1
+    return n, d, weights, lo, hi, Q
+
+
+def translations(Q, t):
+    return comb(Q-3*t+2, 2) if Q >= 3*t else 0
+
+
+def exact_incidence(N, rules, sources, keep=0):
     """Count placements at every host corner using independent row interval additions."""
     placements = {}
-    for n, d, weights in rules:
+    for rule in rules:
+        n, d, weights, lo, hi, Q = unpack(rule, N)
         _, keys, _, _ = sources[n]
         look = dict(zip(keys, weights))
         for j in range(1, n-1):
@@ -63,8 +77,11 @@ def exact_incidence(N, rules, sources):
                     c = n-j-2-a-b
                     w = look[(j, *sorted((a, b, c)))]
                     if w:
-                        shifts[d*a, d*b, d*c] += w
+                        shifts[d*a+lo, d*b+lo, d*c+lo] += w
+                        if 3*hi <= Q:
+                            shifts[d*a+hi, d*b+hi, d*c+hi] -= w
     maximum = 0
+    top = []
     for h, shifts in placements.items():
         L = N-h-2
         differences = [[0]*(L-A+2) for A in range(L+1)]
@@ -74,11 +91,16 @@ def exact_incidence(N, rules, sources):
                 differences[A][L-A-c+1] -= w
         for row in differences:
             running = 0
-            for change in row:
+            for change in row[:-1]:
                 running += change
                 maximum = max(maximum, running)
-            assert running == 0
-    return maximum
+                if keep and running:
+                    if len(top) < keep:
+                        heappush(top, running)
+                    elif running > top[0]:
+                        heapreplace(top, running)
+            assert running+row[-1] == 0
+    return maximum, sum(top)
 
 
 def verify(cert, catalogs):
@@ -94,20 +116,26 @@ def verify(cert, catalogs):
         sources[n] = b, keys, multiplicity, profiles
     incidence = Counter()
     total = 0
-    for n, d, weights in cert["rules"]:
+    for rule in cert["rules"]:
+        n, d, weights, lo, hi, Q = unpack(rule, N)
         b, keys, multiplicity, profiles = sources[n]
         assert 1 <= d <= (N-2)//(n-2) and len(weights) == len(keys)
         assert all(type(v) is int and v >= 0 for v in weights)
         floor = min(chain([(b+1)*min(weights)], (sum(weights[i] for i in p) for p in profiles)))
-        total += floor*comb(N-d*(n-2), 2)
+        total += floor*(translations(Q, lo)-translations(Q, hi))
         for (j, a, c, e), w in zip(keys, weights):
             incidence[j*d] += multiplicity[j, a, c, e]*w
-    K = exact_incidence(N, cert["rules"], sources) if cert.get("mode") == "exact" else max(incidence.values())
     upper = comb(N, 2)-(N-1)+(N-1)//3
-    margin = total-K*upper
+    ranked = cert.get("mode") == "ranked"
+    if cert.get("mode") in ("exact", "bands", "ranked"):
+        K, heaviest = exact_incidence(N, cert["rules"], sources, upper if ranked else 0)
+    else:
+        K, heaviest = max(incidence.values()), 0
+    ceiling = heaviest if ranked else K*upper
+    margin = total-ceiling
     assert margin > 0
     print(f"Side {N}, weighted lower total {total:,}, maximum incidence {K:,}, "
-          f"global rainbow ceiling {upper:,}, contradiction margin {margin:,}.")
+          f"global rainbow ceiling {upper:,}, weighted ceiling {ceiling:,}, contradiction margin {margin:,}.")
     return margin
 
 

@@ -1,6 +1,6 @@
-# A position-weighted proof that the three-color grid number is at most 284
+# A position-weighted proof that the three-color grid number is at most 219
 
-Every three-coloring of the 284 by 284 square contains a monochromatic directed L. Combined with the published 20 by 20 construction, this gives $21\le R_3\le 284$. The proof uses finite triangle coloring counts and integer arithmetic. Its local catalogs cover $T_{11}$ through 5 rainbows (2,742 orbits), $T_{12}$ through 8 rainbows (1,838 orbits), $T_{13}$ through 9 rainbows (0 orbits), up to simultaneous renaming of colors and permutations of the three geometric coordinates.
+Every three-coloring of the 219 by 219 square contains a monochromatic directed L. Combined with the published 20 by 20 construction, this gives $21\le R_3\le 219$. The proof uses finite triangle coloring counts and integer arithmetic. Its local catalogs cover $T_{11}$ through 5 rainbows (2,742 orbits), $T_{12}$ through 8 rainbows (1,838 orbits), $T_{13}$ through 9 rainbows (0 orbits), up to simultaneous renaming of colors and permutations of the three geometric coordinates.
 
 ## Local scores
 
@@ -10,14 +10,15 @@ For each source order $m$ and dilation $d$, the certificate assigns a nonnegativ
 
 ## Copies and the boundary of the host
 
-The host is $T_N$ with $N=284$. Dilation by $d$ followed by adding any nonnegative triple with sum $N-2-d(m-2)$ gives exactly $\binom{N-d(m-2)}2$ copies. A proper coloring of the host therefore has total weighted rainbow count across copies at least
+The host is $T_N$ with $N=219$. At a dilation $d$ the translation triple $(\alpha,\beta,\gamma)$ has sum $Q=N-2-d(m-2)$. A rule may select only copies with $\ell\le\min(\alpha,\beta,\gamma)<u$. The number of such copies is $H_Q(\ell)-H_Q(u)$, where $H_Q(t)=\binom{Q-3t+2}{2}$ for $Q\ge3t$ and zero otherwise. Subtract $t$ from all three coordinates to obtain this formula. Summing the guaranteed local score times this copy count over the rules gives the lower bound $J$ for the total weighted rainbow count.
+
+Fix a host L of step $h$ and base coordinates $(A,B,C)$, with $A+B+C=N-h-2$. A source L at $(a,b,c)$ of step $j$ maps to it exactly when $h=dj$ and
 \[
-  J=\sum_{m,d} s_{m,d}\binom{N-d(m-2)}2 .
+ \ell\le\min(A-da,B-db,C-dc)<u.
 \]
+The translation is then unique. Add the applicable weights to get the incidence $I(e)$ of each host corner $e$. For an independent integer count, the code handles the lower threshold $t=\ell$ by adding its weight and handles $t=u$ by subtracting it. At fixed $h,A$ the admissible $B$ for threshold $t$ form the interval $[db+t,N-h-2-A-dc-t]$ when $A\ge da+t$. Integer interval additions followed by a scan cover every host position.
 
-Fix one host L of step $h$ and base coordinates $(A,B,C)$, with $A+B+C=N-h-2$. A given source L of step $j$ at $(a,b,c)$ maps to it exactly when $h=dj$ and $A\ge da,\ B\ge db,\ C\ge dc$. These conditions uniquely determine the translation. Add the applicable weights and take the maximum $K$ over all host corners. For independent exact counting, at fixed $h,A$ the admissible $B$ form the integer interval $[db,N-h-2-A-dc]$. The verifier adds each weight to that interval using its two endpoints and scans every possible $B$.
-
-The manuscript's line identity gives $\mathcal R_N\le U_N=\binom N2-(N-1)+\lfloor(N-1)/3\rfloor$ for the total number of rainbows in a proper coloring. Hence $J\le K\mathcal R_N\le KU_N$. The published integers give **$J-KU_N=242,473,938,095,219>0$**. This contradiction rules out a proper $T_N$ and thus a proper square of side $N$. [Three-color line identity and embedding argument](../../manuscript/main.tex)
+The manuscript's line identity bounds the host's total number of rainbows by $U_N=\binom N2-(N-1)+\lfloor(N-1)/3\rfloor$. For this certificate set $V=U_N\max_e I(e)$. Therefore the weighted rainbow count is at most $V$. The certificate gives **$J-V=57,011,450,947,805>0$**. This contradiction rules out a proper $T_N$ and hence a proper square of side $N$. [Three-color line identity and embedding argument](../../manuscript/main.tex)
 
 ## Reproduction
 
