@@ -1,6 +1,8 @@
 # Finite certificates for directed L-grid Ramsey numbers
 
-The [three-color proof at side 461](THREE_COLOR_461.md) gives **$21\le R_3\le461$**. It combines a [forced-color exclusion](NO_OPTIMAL_461.md) with a complete count of 35-letter diagonal words. A [proper 20 by 21 rectangle](RECTANGLE_20_21.md) gives an explicit construction one row short of the 21 square. The [one-defect grid needs at least 18 cell changes](REPAIR_21.md) to become proper. The [modular-affine exclusion](AFFINE_128.md) covers all moduli up to 128 at side 21. The side-462 proof below uses fewer external Golomb inputs. At side 460 the [ordered progression obstructions](ORDERED_BOXES.md) exclude a boundary pair and the [order-23 check](ORDER23_AT_460.md) excludes another completion shape.
+The [position-weighted triangle proof](THREE_COLOR_WEIGHTED.md) gives **$21\le R_3\le 284$**. It uses complete local triangle catalogs and counts each possible host placement.
+
+The [three-color proof at side 461](THREE_COLOR_461.md) is an independent diagonal-word bound. It combines a [forced-color exclusion](NO_OPTIMAL_461.md) with a complete count of 35-letter diagonal words. A [proper 20 by 21 rectangle](RECTANGLE_20_21.md) gives an explicit construction one row short of the 21 square. The [one-defect grid needs at least 18 cell changes](REPAIR_21.md) to become proper. The [modular-affine exclusion](AFFINE_128.md) covers all moduli up to 128 at side 21. The side-462 proof below uses fewer external Golomb inputs. At side 460 the [ordered progression obstructions](ORDERED_BOXES.md) exclude a boundary pair and the [order-23 check](ORDER23_AT_460.md) excludes another completion shape.
 
 The [exact small-triangle rainbow counts](LOCAL_RAINBOW_MINIMA.md) are 0, 1, 3 and 6 on orders 9 through 12.
 
