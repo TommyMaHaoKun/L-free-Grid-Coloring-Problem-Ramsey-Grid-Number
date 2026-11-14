@@ -12,7 +12,7 @@ SIDE = 21_948_350
 WIDTH = 34_950
 
 
-def sidon_length(k, den, r, alpha):
+def sidon_length(k, den, r, alpha, edge_saving=0, check_domain=None):
     """Return a certified lower bound for the number of occupied-interval positions."""
     c = Fraction((k - 1) * r[0], den)
     square = k * k * c / alpha
@@ -20,6 +20,9 @@ def sidon_length(k, den, r, alpha):
     best = 0
     for block in range(max(1, center - 2), center + 3):
         length = ceil(Fraction(k * k * block, 1) / (block + c) - block * alpha)
+        length += edge_saving
+        if check_domain is not None:
+            check_domain(k, length - 1, block)
         # Exclusion at length-1 also rules out all shorter intervals by embedding.
         require(length - 2 >= 2 * len(r) * block, "room for inner table")
         best = max(best, length)

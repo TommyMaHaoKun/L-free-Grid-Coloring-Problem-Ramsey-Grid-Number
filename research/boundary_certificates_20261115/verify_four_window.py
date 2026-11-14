@@ -75,7 +75,7 @@ def correlation(t,d):
     return m*(m*m-1)*(m*m+1+5*d*(t+1))//30
 
 
-def verify_profile(rows,den,r,alpha,thresholds):
+def verify_profile(rows,den,r,alpha,thresholds,edge_saving=0):
     offsets=[v for v,_,_ in rows]
     require(all(v<u for v,u in zip(offsets,offsets[1:])),"order of offsets")
     require(all(k>=l for (_,k,_),(_,l,_) in zip(rows,rows[1:])),"nested caps")
@@ -109,7 +109,7 @@ def verify_profile(rows,den,r,alpha,thresholds):
         require(golomb(p-len(r)*b+1)+golomb(p-len(r)*b)==gamma-len(events),
                 "all capacity drops found")
         for h in events:e-=tail2(h,b)
-        return k*k*weight*alpha.denominator > (p*alpha.denominator+b*alpha.numerator)*e
+        return k*k*weight*alpha.denominator > ((p-edge_saving)*alpha.denominator+b*alpha.numerator)*e
     for v,cap,b in rows:
         require(audit(REFERENCE-v,cap+1,b),f"failed interval witness at offset {v}")
 

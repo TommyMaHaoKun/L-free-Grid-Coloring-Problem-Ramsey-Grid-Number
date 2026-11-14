@@ -23,7 +23,7 @@ def budget(histogram):
     return best+max(histogram)+sum(min(3,x) for x in histogram)
 
 
-def outer_twenty(rows,side,width):
+def outer_twenty(rows,side,width,kernel=correlation):
     max_twice=max(budget(h) for h in combinations_with_replacement(range(BLOCK+1),4)
                   if sum(h)==BLOCK)
     baseline=sum(min(i,12) for i in range(1,BLOCK+1))
@@ -32,10 +32,10 @@ def outer_twenty(rows,side,width):
     starts=[a for a,_,_ in rows]
     offset=REFERENCE-side
     require(starts[0]<=offset+1 and starts[-1]>=offset+width+10,"profile coverage")
-    raw=-3*side*correlation(width,0)
+    raw=-3*side*kernel(width,0)
     for d in range(1,width):
         u=sum(rows[bisect_right(starts,offset+d+j)-1][1] for j in range(12))
-        raw+=2*(side-d-4*u)*correlation(width,d)
+        raw+=2*(side-d-4*u)*kernel(width,d)
     centers=[]
     bonus=0
     for i in range(1,len(rows)-1):
@@ -44,7 +44,7 @@ def outer_twenty(rows,side,width):
         if (rows[i-1][1]==cap+1 and v-starts[i-1]>=BLOCK
             and starts[i+1]-v>=12 and D-BLOCK>=1 and D-1<width):
             centers.append(D)
-            bonus+=8*loss*min(correlation(width,D-s) for s in range(1,BLOCK+1))
+            bonus+=8*loss*min(kernel(width,D-s) for s in range(1,BLOCK+1))
     require(all(b-a>=BLOCK for a,b in zip(centers,centers[1:])),"disjoint blocks")
     return len(centers),raw,bonus,loss
 
