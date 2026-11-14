@@ -1,0 +1,57 @@
+# Exact rainbow minima on small directed triangles
+
+Write $T_n=\{(x,y):0\le y<x<n\}$. A proper coloring has no monochromatic directed L, and a rainbow L uses all three colors. The minimum number of rainbow Ls among proper three-colorings is **0 on $T_9$, 1 on $T_{10}$, 3 on $T_{11}$ and 6 on $T_{12}$**.
+
+| Triangle | Cells | Directed Ls | Minimum | Minimizers up to palette permutation |
+|---|---:|---:|---:|---:|
+| $T_9$ | 36 | 84 | 0 | 42 |
+| $T_{10}$ | 45 | 120 | 1 | 12 |
+| $T_{11}$ | 55 | 165 | 3 | 66 |
+| $T_{12}$ | 66 | 220 | 6 | 204 |
+
+The table counts different geometric placements separately. **small_triangle_rainbows.json** gives one literal example in each row. In particular the [five-rainbow proposal for the 11-triangle and seven-rainbow proposal for the 12-triangle](../../exploration/research_round4/research/DIVISOR_WEIGHTED_TRIANGLE_AVERAGING_0043.md) have explicit counterexamples.
+
+## Enumerating prescribed rainbow positions
+
+Every directed L in a proper coloring uses either two or three distinct colors. Prescribing the exact set of rainbow positions imposes one of those two constraints on each L. The checker enumerates sets of up to three positions. When a position is prescribed rainbow, its three cells may be fixed to colors 0, 1, 2 in their listed order. For an empty support we fix the first cell to 0 and divide the number of answers by two. Every coloring uses at least two colors, so the residual transposition acts freely.
+
+Write each cell in barycentric coordinates $(x-y-1,y,n-x-1)$. Permutations of the three coordinates preserve the directed triples as unordered sets. The checker searches the least member of each geometric orbit of supports and weights its answer by the orbit size. A domain maintains the possible colors of each cell. A color can be deleted when no allowed assignment of the other two cells of an incident L supports it. After such deletions, branching tries each remaining color. Every accepted complete assignment is checked against every L.
+
+For $T_{11}$, the numbers of supports at sizes 0, 1, 2, and 3 are 1, 165, 13,530, and 735,130. Their counts of palette classes are 0, 0, 0, and 66. The direct enumerator visits 415,514,610 search nodes at size three.
+
+## Deleting a boundary line
+
+Let $C(n,b)$ be the set of proper colorings of $T_n$ with at most $b$ rainbow Ls, up to geometric and palette symmetry. If a rainbow L touches any boundary line, delete that line. The remaining triangle belongs to $C(n-1,b-1)$. All three lines are equivalent under coordinate permutations. Conversely, a coloring in which no rainbow L touches any of the three lines has all rainbows in the inner $T_{n-3}$. Enumerating both cases and taking their union therefore gives the entire $C(n,b)$.
+
+To extend an old triangle by its final row at $x=n$, each pair of new cells at indices $i<j$ closes exactly one L. Its old cell is $(n-(j-i),i)$. The extension routine tests every row prefix, rejects a monochromatic L immediately, and counts each new rainbow once. Every geometric orientation of the old triangle is tried before taking the least geometric and palette image of the result.
+
+The interior-only search requires exactly two colors on every L touching the boundary, and two or three colors elsewhere. An interior L is forced rainbow when its current domains have no two-color assignment. If the forced number exceeds the remaining total bound, the branch ends. When it reaches the bound, every other L has to admit a two-color assignment. Branching still tries every possible color of the chosen cell.
+
+As an independent enumeration, starting with the complete $T_{10}$ list through three rainbows gives 12, 1,182, and 32,168 palette classes at one, two, and three respectively. At $T_{11}$ there are 66 with three and 732 with four. None of these 798 colorings extends to a $T_{12}$ with five or fewer, and none exists in the interior-only case. Starting one order earlier enumerates the 204 six-rainbow colorings of $T_{12}$.
+
+## Two larger reference colorings
+
+Consider the set of rainbow positions of either of the [larger literal examples](RAINBOW_ROUTES.md). The following counts permit arbitrary changes to old rainbow positions and prescribe exactly $k$ new positions outside that set. The entries count all palette classes within that restriction, with geometric copies kept distinct.
+
+| Reference | New positions | Total rainbow count and number of palette classes |
+|---|---:|---|
+| $T_{13}$ with 11 rainbows | 0 | 11 in one class |
+| $T_{13}$ | 1 | 12 in three classes |
+| $T_{13}$ | 2 | 12 in three classes, 13 in ten classes |
+| $T_{14}$ with 17 rainbows | 0 | 17 in two classes |
+| $T_{14}$ | 1 | 18 in five classes |
+| $T_{14}$ | 2 | 18 in sixteen classes, 19 in seven classes |
+
+Any improvement to either reference must introduce at least three previously absent rainbow positions. The exact-two-new-position searches cover 37,675 and 60,031 pairs, respectively.
+
+## Reproduction
+
+From this directory, compile both C99 programs. The Python drivers use only the standard library. The final command reports the multiplicity at six rainbows.
+
+~~~sh
+cc -O3 -std=c99 verify_rainbow_neighborhood.c -o rain_search
+cc -O3 -std=c99 verify_triangle_extensions.c -o triangle_extend
+python verify_local_rainbows.py ./rain_search --jobs 4
+python verify_triangle_boundary.py ./rain_search ./triangle_extend --jobs 4
+python verify_triangle_boundary.py ./rain_search ./triangle_extend --target 12 --budget 6 --jobs 4
+~~~
