@@ -124,3 +124,7 @@ python verify_triangle_stream.py ./rain_search ./triangle_stream --jobs 4
 The central copy of $T_{13}$ in every proper $T_{22}$ has **at least twelve** rainbow Ls. The embedding adds $(3,3,3)$ to the barycentric coordinates, or sends $(x,y)$ to $(x+6,y+3)$. Every symmetry of the central copy extends to the whole triangle because its three margins are equal. Thus a coloring with eleven central rainbows would yield an extension of one of the 21 archived words after a geometric symmetry and palette permutation.
 
 The formula imposes one of three colors on each of the 231 cells and forbids all monochromatic directed Ls. It requires that at least one of the 21 canonical words matches the central cells. The archived RUP refutation excludes every such choice in one formula. Run **python verify_triangle_center.py /path/to/drat-trim** to reconstruct the 7,183 clauses and check the supplied proof. This gives a stronger local score for copies with sufficient space around them.
+
+## Order 15
+
+Every proper $T_{15}$ has at least **fourteen** rainbow Ls. A hypothetical coloring with at most thirteen and a boundary rainbow would restrict, after deleting a touched side, to $T_{14}$ with at most twelve. The latter catalog is empty. In the remaining case all rainbows avoid the boundary. The 27 prefix searches visited 5,742,796,021 branch nodes and returned zero colorings. The streaming reproduction above now continues through order 15.

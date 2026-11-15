@@ -1,4 +1,4 @@
-"""Reconstruct the archived order-13 minimizers and the order-14 empty catalog."""
+"""Reconstruct the archived order-13 minimizers and the empty catalogs through order 15."""
 import argparse
 import json
 import subprocess
@@ -63,10 +63,10 @@ def main():
     parser.add_argument("--jobs", type=int, default=1)
     args = parser.parse_args()
     counts, words = reconstruct(str(args.search.resolve()), str(args.extend.resolve()),
-                                6, 14, 12, 13, args.jobs)
+                                6, 15, 13, 13, args.jobs)
     archived = json.loads(Path(__file__).with_name("triangle_13_minimizers.json").read_text())
     assert {w.decode() for w in words[13]} == set(archived)
-    assert counts[13,11] == len(archived) == 21 and not words[14]
+    assert counts[13,11] == len(archived) == 21 and not words[14] and not words[15]
     assert sum(orbit(13,w) for w in words[13]) == 126
 
 

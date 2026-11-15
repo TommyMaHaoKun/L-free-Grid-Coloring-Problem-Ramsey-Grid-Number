@@ -55,7 +55,7 @@ def cost(n, w):
     return c[3]
 
 
-def orbit(n, w):
+def orientations(n, w):
     forms = set()
     for p in permutations(range(3)):
         b = bytearray()
@@ -67,7 +67,11 @@ def orbit(n, w):
         labels = {}
         forms.add(bytes(labels.setdefault(c, 48+len(labels)) for c in b))
     assert w == min(forms)
-    return len(forms)
+    return forms
+
+
+def orbit(n, w):
+    return len(orientations(n, w))
 
 
 def main():

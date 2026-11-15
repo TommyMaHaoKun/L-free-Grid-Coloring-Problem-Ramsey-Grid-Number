@@ -1,6 +1,6 @@
-# A position-weighted proof that the three-color grid number is at most 163
+# A position-weighted proof that the three-color grid number is at most 158
 
-Every three-coloring of the 163 by 163 square contains a monochromatic directed L. Combined with the published 20 by 20 construction, this gives $21\le R_3\le 163$. The proof uses finite triangle coloring counts and integer arithmetic. Its local catalogs cover $T_{11}$ through 5 rainbows (2,742 orbits), $T_{12}$ through 9 rainbows (16,060 orbits), $T_{13}$ through 11 rainbows (21 orbits), $T_{14}$ through 12 rainbows (0 orbits), up to simultaneous renaming of colors and permutations of the three geometric coordinates.
+Every three-coloring of the 158 by 158 square contains a monochromatic directed L. Combined with the published 20 by 20 construction, this gives $21\le R_3\le 158$. The proof uses finite triangle coloring counts and integer arithmetic. Its local catalogs cover $T_{11}$ through 5 rainbows (2,742 orbits), $T_{12}$ through 9 rainbows (16,060 orbits), $T_{13}$ through 11 rainbows (21 orbits), $T_{14}$ through 12 rainbows (0 orbits), $T_{15}$ through 13 rainbows (0 orbits), up to simultaneous renaming of colors and permutations of the three geometric coordinates.
 
 ## Local scores
 
@@ -8,9 +8,15 @@ Give each cell of $T_m$ its nonnegative coordinates $(x-y-1,y,m-x-1)$, of sum $m
 
 For each source order $m$ and dilation $d$, the certificate assigns a nonnegative integer weight to each such class. Let $b_m$ be the archived rainbow cutoff for that order. A coloring with more than $b_m$ rainbows has weight at least $(b_m+1)\min w$. For every coloring at or below the cutoff, sum the weights of its actual rainbow Ls. The minimum of those finite scores and the preceding lower bound is a valid lower bound $s_{m,d}$ for every proper coloring. The exhaustive [boundary-deletion recurrence](LOCAL_RAINBOW_MINIMA.md) supplies every archived coloring, including the empty catalogs.
 
+## Using the surrounding square
+
+Assume that the whole $N$ by $N$ square is properly colored. The triangle supplies the upper bound on rainbows. Its surrounding square supplies additional lower bounds. A source triangle of order $m$ with translation $(a,b,c)$ and dilation $d$ has an axis-aligned bounding square of side $m-1$ in its own lattice. Its lower-left lattice point in host coordinates is $(1+a+b,b)$.
+
+The [square extension checks](SQUARE_PATCHES.md) increase the guaranteed count on specific placements. Test every certified offset and its antidiagonal reflection. If an enclosing square of side $s$ and step $d$ fits inside the host, the local score increases to the maximum of its original floor and the certified rainbow count times the smallest local weight. For each rule the checker counts every eligible translation once, including when several enclosing squares fit. Placements outside the certified positions use the original floor. Summing these contributions gives $J$.
+
 ## Copies and the boundary of the host
 
-The host is $T_N$ with $N=163$. At a dilation $d$ the translation triple $(\alpha,\beta,\gamma)$ has sum $Q=N-2-d(m-2)$. A rule may select only copies with $\ell\le\min(\alpha,\beta,\gamma)<u$. The number of such copies is $H_Q(\ell)-H_Q(u)$, where $H_Q(t)=\binom{Q-3t+2}{2}$ for $Q\ge3t$ and zero otherwise. Subtract $t$ from all three coordinates to obtain this formula. Summing the guaranteed local score times this copy count over the rules gives the lower bound $J$ for the total weighted rainbow count.
+The host is $T_N$ with $N=158$. At a dilation $d$ the translation triple $(\alpha,\beta,\gamma)$ has sum $Q=N-2-d(m-2)$. A rule may select only copies with $\ell\le\min(\alpha,\beta,\gamma)<u$. The number of such copies is $H_Q(\ell)-H_Q(u)$, where $H_Q(t)=\binom{Q-3t+2}{2}$ for $Q\ge3t$ and zero otherwise. Subtract $t$ from all three coordinates to obtain this formula. These counts give the base contribution to $J$ before the placement-specific increases.
 
 Other rules select $\ell\le\max(\alpha,\beta,\gamma)<u$. For any threshold $t$, the indicator that all three coordinates are less than $t$ equals the product of the three factors $1-\mathbf 1_{\alpha_i\ge t}$. Expanding it gives eight signed restrictions on coordinatewise lower bounds. Subtract the expansion for $t=\ell$ from that for $t=u$. A term with lower bounds $(r,s,t)$ contributes $\binom{Q-r-s-t+2}{2}$ translations when $r+s+t\le Q$ and zero otherwise. Each selected copy contributes one regardless of its translation region. Summing over overlapping rules is legitimate because each rule contributes its own specified weights.
 
@@ -20,17 +26,18 @@ Fix a host L of step $h$ and base coordinates $(A,B,C)$, with $A+B+C=N-h-2$. A s
 \]
 For a maximum-coordinate rule, require all three gaps nonnegative and apply the same band to their maximum. The translation is then unique. Add the applicable weights to get the incidence $I(e)$ of each host corner $e$. For an independent integer count, the code handles the lower threshold $t=\ell$ by adding its weight and handles $t=u$ by subtracting it. At fixed $h,A$ the admissible $B$ for threshold $t$ form the interval $[db+t,N-h-2-A-dc-t]$ when $A\ge da+t$. For a general signed term with shifts $(r,s,t)$, use the interval $[db+s,N-h-2-A-dc-t]$ when $A\ge da+r$. Integer interval additions followed by a scan cover every host position.
 
-The manuscript's line identity bounds the host's total number of rainbows by $U_N=\binom N2-(N-1)+\lfloor(N-1)/3\rfloor$. For this certificate $V$ is the sum of the $U_N$ largest values of $I(e)$. Every set of at most $U_N$ host rainbows has total incidence at most that sum. Therefore the weighted rainbow count is at most $V$. The certificate gives **$J-V=54,783,504,610,955>0$**. This contradiction rules out a proper $T_N$ and hence a proper square of side $N$. [Three-color line identity and embedding argument](../../manuscript/main.tex)
+The manuscript's line identity bounds the host's total number of rainbows by $U_N=\binom N2-(N-1)+\lfloor(N-1)/3\rfloor$. For this certificate $V$ is the sum of the $U_N$ largest values of $I(e)$. Every set of at most $U_N$ host rainbows has total incidence at most that sum. Therefore the weighted rainbow count is at most $V$. The certificate gives **$J-V=29,441,755,138,041>0$**. A proper square of side $N$ would force its triangular subregion to satisfy both counts. Their strict inequality proves the bound. [Three-color line identity and embedding argument](../../manuscript/main.tex)
 
 ## Reproduction
 
-The portable C and Python checkers use their standard libraries. The first Python command checks the catalog colorings, their weighted scores, and the exact host incidences. The final command also regenerates every low-rainbow catalog from the full search and compares its colorings individually.
+The first command checks the scores and the exact integer contradiction. The next two rebuild the small-square and triangle searches. The square checker uses python-sat and drat-trim. The triangle checker uses two C99 programs and Python's standard library.
 
 ~~~sh
-cc -O3 -std=c99 verify_rainbow_neighborhood.c -o rain_search
-cc -O3 -std=c99 verify_triangle_extensions.c -o triangle_extend
 python verify_triangle_grid.py
-python verify_triangle_grid.py --rebuild ./rain_search ./triangle_extend --jobs 4
+python verify_square_patches.py /path/to/drat-trim --cache /path/to/proofs
+cc -O3 -std=c99 verify_rainbow_neighborhood.c -o rain_search
+cc -O3 -std=c99 verify_triangle_stream.c -o triangle_stream
+python verify_triangle_stream.py ./rain_search ./triangle_stream --jobs 4
 ~~~
 
-The [streaming proof](LOCAL_RAINBOW_MINIMA.md#the-order-13-minimizers-and-the-order-14-obstruction) reconstructs the two largest orders while holding only the active extension path and requested outputs in memory.
+For individual reconstruction of every weighted source catalog use **python verify_triangle_grid.py --rebuild ./rain_search ./triangle_extend --jobs 4** after compiling **verify_triangle_extensions.c**. The [streaming proof](LOCAL_RAINBOW_MINIMA.md#the-order-13-minimizers-and-the-order-14-obstruction) reconstructs the largest three orders with less memory.

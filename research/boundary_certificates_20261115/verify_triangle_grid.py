@@ -9,6 +9,7 @@ from math import comb
 from pathlib import Path
 
 from verify_triangle_boundary import extend, listed, seed
+from verify_square_patches import fits_checked_square
 
 ROOT = Path(__file__).resolve().parent
 
@@ -121,6 +122,8 @@ def exact_incidence(N, rules, sources, keep=0):
 
 def verify(cert, catalogs):
     N = cert["host"]
+    patch_level = cert.get("square_patches", 0)
+    assert patch_level in (0, 1, 2, 3)
     sources = {}
     for n, b in cert["sources"]:
         keys, multiplicity, corners = geometry(n)
@@ -150,6 +153,16 @@ def verify(cert, catalogs):
             )
         assert copies == copy_counts[region]
         total += floor*copies
+        patch_minimum = 12 if n==13 and patch_level else 8 if n==12 and patch_level==3 else 0
+        extra = patch_minimum*min(weights) - floor
+        if extra > 0:
+            select = min if kind=="min" else max
+            covered = sum(
+                fits_checked_square(N,n,d,a,b,patch_level)
+                for a in range(Q+1) for b in range(Q-a+1)
+                if lo <= select(a,b,Q-a-b) < hi
+            )
+            total += extra*covered
         for (j, a, c, e), w in zip(keys, weights):
             incidence[j*d] += multiplicity[j, a, c, e]*w
     upper = comb(N, 2)-(N-1)+(N-1)//3
