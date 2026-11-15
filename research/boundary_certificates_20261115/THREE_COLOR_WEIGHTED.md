@@ -1,6 +1,6 @@
-# A position-weighted proof that the three-color grid number is at most 152
+# A position-weighted proof that the three-color grid number is at most 151
 
-Every three-coloring of the 152 by 152 square contains a monochromatic directed L. Combined with the published 20 by 20 construction, this gives $21\le R_3\le 152$. The proof uses finite triangle coloring counts and integer arithmetic. Its local catalogs cover $T_{11}$ through 6 rainbows (59,401 orbits), $T_{12}$ through 9 rainbows (16,060 orbits), $T_{13}$ through 11 rainbows (21 orbits), $T_{14}$ through 12 rainbows (0 orbits), $T_{15}$ through 13 rainbows (0 orbits), $T_{16}$ through 14 rainbows (0 orbits), up to simultaneous renaming of colors and permutations of the three geometric coordinates.
+Every three-coloring of the 151 by 151 square contains a monochromatic directed L. Combined with the published 20 by 20 construction, this gives $21\le R_3\le 151$. The proof uses finite triangle coloring counts and integer arithmetic. Its local catalogs cover $T_{11}$ through 6 rainbows (59,401 orbits), $T_{12}$ through 9 rainbows (16,060 orbits), $T_{13}$ through 11 rainbows (21 orbits), $T_{14}$ through 12 rainbows (0 orbits), $T_{15}$ through 13 rainbows (0 orbits), $T_{16}$ through 14 rainbows (0 orbits), up to simultaneous renaming of colors and permutations of the three geometric coordinates.
 
 ## Local scores
 
@@ -16,7 +16,7 @@ The [square extension checks](SQUARE_PATCHES.md) increase the guaranteed count o
 
 ## Copies and the boundary of the host
 
-The host is $T_N$ with $N=152$. At a dilation $d$ the translation triple $(\alpha,\beta,\gamma)$ has sum $Q=N-2-d(m-2)$. A rule may select only copies with $\ell\le\min(\alpha,\beta,\gamma)<u$. The number of such copies is $H_Q(\ell)-H_Q(u)$, where $H_Q(t)=\binom{Q-3t+2}{2}$ for $Q\ge3t$ and zero otherwise. Subtract $t$ from all three coordinates to obtain this formula. These counts give the base contribution to $J$ before the placement-specific increases.
+The host is $T_N$ with $N=151$. At a dilation $d$ the translation triple $(\alpha,\beta,\gamma)$ has sum $Q=N-2-d(m-2)$. A rule may select only copies with $\ell\le\min(\alpha,\beta,\gamma)<u$. The number of such copies is $H_Q(\ell)-H_Q(u)$, where $H_Q(t)=\binom{Q-3t+2}{2}$ for $Q\ge3t$ and zero otherwise. Subtract $t$ from all three coordinates to obtain this formula. These counts give the base contribution to $J$ before the placement-specific increases.
 
 Other rules select $\ell\le\max(\alpha,\beta,\gamma)<u$. For any threshold $t$, the indicator that all three coordinates are less than $t$ equals the product of the three factors $1-\mathbf 1_{\alpha_i\ge t}$. Expanding it gives eight signed restrictions on coordinatewise lower bounds. Subtract the expansion for $t=\ell$ from that for $t=u$. A term with lower bounds $(r,s,t)$ contributes $\binom{Q-r-s-t+2}{2}$ translations when $r+s+t\le Q$ and zero otherwise. Each selected copy contributes one regardless of its translation region. Summing over overlapping rules is legitimate because each rule contributes its own specified weights.
 
@@ -32,7 +32,7 @@ Subtract the weights of all covering copies from each host incidence to form $I'
 \[
  V=\sum_H c_H U_{|H|} + \text{sum of the } U_N \text{ largest values of } \max(0,I'(e)),
 \]
-where $|H|$ denotes the triangle's order. Indeed the original score is the sum of the residuals on the rainbow set plus $\sum_H c_H r(H)$, where $r(H)$ counts the rainbows in $H$. Each local count satisfies its own line bound, and the whole set has at most $U_N$ elements. For side 152 the translated copies contribute 493,277,836,612,026 and the ranked residual contributes 11,297,007,130,543,636. Together they give $V=11,790,284,967,155,662$. The lower score is $J=11,828,798,917,652,112$, hence **$J-V=38,513,950,496,450>0$**. A proper square of side $N$ would force its triangular subregion to satisfy both counts. Their strict inequality proves the bound. [Three-color line identity and embedding argument](../../manuscript/main.tex)
+where $|H|$ denotes the triangle's order. Indeed the original score is the sum of the residuals on the rainbow set plus $\sum_H c_H r(H)$, where $r(H)$ counts the rainbows in $H$. Each local count satisfies its own line bound, and the whole set has at most $U_N$ elements. For side 151 the translated copies contribute 545,922,157,554,923 and the ranked residual contributes 11,115,657,354,870,900. Together they give $V=11,661,579,512,425,823$. The lower score is $J=11,672,643,937,433,450$, hence **$J-V=11,064,425,007,627>0$**. A proper square of side $N$ would force its triangular subregion to satisfy both counts. Their strict inequality proves the bound. [Three-color line identity and embedding argument](../../manuscript/main.tex)
 
 ## Reproduction
 
