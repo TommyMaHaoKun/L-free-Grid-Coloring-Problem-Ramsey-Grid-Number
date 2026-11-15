@@ -128,3 +128,19 @@ The formula imposes one of three colors on each of the 231 cells and forbids all
 ## Order 15
 
 Every proper $T_{15}$ has at least **fourteen** rainbow Ls. A hypothetical coloring with at most thirteen and a boundary rainbow would restrict, after deleting a touched side, to $T_{14}$ with at most twelve. The latter catalog is empty. In the remaining case all rainbows avoid the boundary. The 27 prefix searches visited 5,742,796,021 branch nodes and returned zero colorings. The streaming reproduction above now continues through order 15.
+
+## Rainbows touching the boundary at orders 17 and 18
+
+In every proper $T_{17}$ and every proper $T_{18}$ some rainbow L touches one of the three outer sides. A proper $T_{16}$ can place all its rainbows strictly in the interior. The [literal order-16 coloring](boundary_free_16.txt) gives the latter example.
+
+To prove each obstruction, impose one color per cell, forbid every monochromatic L, and require that every L touching any outer side uses at most two colors. The three extreme vertices form a directed L. They must use exactly two colors under these constraints. Permuting the three barycentric coordinates permutes those extreme vertices arbitrarily while preserving Ls and the boundary. Relabeling the palette then gives colors $(0,0,1)$ at the extreme vertices in the order $(1,0),(n-1,0),(n-1,n-2)$. The [checker](verify_rainbow_boundary_layers.py) constructs the clauses in literal coordinates and verifies both supplied RUP proofs. Run **python verify_rainbow_boundary_layers.py /path/to/drat-trim**.
+
+A positive integer dilation of these triangles forces a boundary rainbow whenever $15$ or $16$ divides $n-2$ with positive quotient. The three sides of the embedded triangle then lie on the three sides of $T_n$.
+
+## Fifteen rainbows at order 16, sixteen at order 17 and seventeen at order 18
+
+Suppose that a proper $T_{16}$ has at most fourteen rainbows. If one touches a boundary side, deleting that side gives a proper $T_{15}$ with at most thirteen, contrary to the order-15 bound. Hence all its rainbows are in the central $T_{13}$, whose 286 corners are the possible interior rainbow positions.
+
+A copy of $T_m$ obtained by integral translation of barycentric coordinates has at least $f_m$ rainbows, where $(f_{11},f_{12},f_{13},f_{14},f_{15})=(3,6,11,13,14)$ by the earlier counts. At most $14-f_m$ of the alleged fourteen rainbows can therefore lie outside each such copy. The [order-16 checker](verify_order16_interior.py) constructs the proper-coloring clauses, forbids every boundary rainbow, marks each forced interior rainbow, and imposes these exterior bounds and the total upper bound fourteen. For translation $(a,b,c)$ a corner with base coordinates $(i,j,k)$ is outside if and only if $i<a$, $j<b$, or $k<c$. Exact color and geometric symmetries permit the same outer colors as above. The supplied RUP refutation proves that no assignment satisfies the formula. Run **python verify_order16_interior.py /path/to/drat-trim** with python-sat installed.
+
+Thus every proper $T_{16}$ has at least **15** rainbows. Deleting a side touched by a rainbow in $T_{17}$ leaves a $T_{16}$ with at least 15 other rainbows. Repeating at order 18 gives at least **16** and **17** rainbows at orders 17 and 18 respectively.

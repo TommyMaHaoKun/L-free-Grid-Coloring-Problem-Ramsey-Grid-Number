@@ -7,6 +7,9 @@ A free proper order-13 triangle can contain just eleven rainbow directed Ls. An 
 | Order 13 | 17 by 17 | (5, 0) | 126 | 12 |
 | Order 13 | 18 by 18 | (0, 0) | 126 | 12 |
 | Order 12 | 18 by 18 | (3, 3) | 1,578 | 8 |
+| Order 12 | 18 by 18 | (0, 0) | 1,578 | 8 |
+| Order 12 | 18 by 18 | (7, 0) | 1,578 | 8 |
+| Order 12 | 18 by 18 | (3, 3) | 11,028 | 9 |
 
 At offset $(i,j)$ the triangle cell $(x,y)$, with $0\le y<x<m$, occupies square cell $(i+x-1,j+y)$. Reflecting the square by $(x,y)\mapsto(s-1-y,s-1-x)$ preserves directed Ls and the triangular shape. Thus every row in the table also holds at offset $(s-m+1-j,s-m+1-i)$. Relabeling colors and taking positive integer dilations preserve each conclusion.
 
@@ -14,7 +17,7 @@ At offset $(i,j)$ the triangle cell $(x,y)$, with $0\le y<x<m$, occupies square 
 
 The complete [triangle catalogs](LOCAL_RAINBOW_MINIMA.md) contain every proper coloring through the cutoffs. Expand each geometric orbit through its six coordinate permutations, normalizing colors by first appearance. At order 13 this gives all 126 words with eleven rainbows. At order 12 there are 204 with six rainbows and 1,374 with seven.
 
-For each square and offset impose exactly one of three colors on each cell. For every directed equal-leg L forbid its three monochromatic assignments. Require the triangular cells to match one of the listed words. The formula for each group of words is unsatisfiable. The checker rebuilds its clauses from the literal square coordinates and verifies a reverse unit propagation refutation. It partitions the three table rows into 1, 6, and 53 groups respectively and checks every oriented word.
+For each square and offset impose exactly one of three colors on each cell. For every directed equal-leg L forbid its three monochromatic assignments. Require the triangular cells to match one of the listed words. The formula for each group of words is unsatisfiable. The checker rebuilds its clauses from the literal square coordinates and verifies a reverse unit propagation refutation. It partitions the two order-13 rows into 1 and 6 groups and the three 1,578-word checks into 53 groups each. The stronger interior check uses 184 groups and checks every oriented word.
 
 The canonical source catalogs and the formulas are fixed. Running **python verify_square_patches.py /path/to/drat-trim --cache /path/to/proofs** reconstructs and checks the proof traces. The first run uses python-sat with Glucose 4 and [drat-trim](https://github.com/marijnheule/drat-trim). Cached compressed traces can subsequently be checked without a SAT solver.
 
@@ -23,3 +26,7 @@ The canonical source catalogs and the formulas are fixed. Running **python verif
 Write $(a,b,c)$ for the three nonnegative translation coordinates in the host triangle and let $d$ be the dilation. They obey $a+b+c=N-2-11d$. The order-13 bounding square occupies columns and rows starting at $(1+a+b,b)$ and spanning $11d$ in each direction. The 17-square fits at the first offset exactly when $1+a+b\ge5d$ and $1+a+c\ge5d$. The 18-square fits at one of its two reflected offsets when $b\ge6d$ or $c\ge6d$.
 
 In particular **every order-13 copy of dilation $d$ in the standard host triangle has at least twelve rainbows if $N\ge22d$** and the host square is proper. If none of the offsets fits then $a+\min(b,c)\le5d-2$ and $\max(b,c)\le6d-1$. Adding gives $N-2-11d\le11d-3$, contradicting $N\ge22d$. The weighted verifier tests the actual bounding squares individually, which also covers some larger dilations.
+
+## Where order 12 gains two rainbows
+
+**If $N\ge24d$, every order-12 triangle of dilation $d$ in the standard $T_N$ of a proper $N$ by $N$ square contains at least eight rainbows.** Write $a+b+c=N-2-10d$. The offsets $(0,0)$ and $(7,7)$ fit if $c\ge7d$ or $b\ge7d$, respectively. The offset $(7,0)$ fits if both $1+a+b$ and $1+a+c$ are at least $7d$. If all three fail, then $a+\min(b,c)\le7d-2$ and $\max(b,c)\le7d-1$. This gives $N-2-10d\le14d-3$, contrary to $N\ge24d$. The offset $(3,3)$ supplies additional placements near the cutoff.

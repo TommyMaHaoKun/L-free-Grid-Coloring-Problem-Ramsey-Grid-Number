@@ -4,7 +4,7 @@ import json
 import lzma
 from heapq import heappush, heapreplace
 from collections import Counter
-from itertools import chain, product
+from itertools import chain, permutations, product
 from math import comb
 from pathlib import Path
 
@@ -79,7 +79,7 @@ def translation_terms(Q, kind, lo, hi):
     return [(a, b, c, v) for (a, b, c), v in terms.items() if v and a+b+c <= Q]
 
 
-def exact_incidence(N, rules, sources, keep=0):
+def exact_incidence(N, rules, sources, keep=0, caps=()):
     """Count placements at every host corner using independent row interval additions."""
     placements = {}
     for rule in rules:
@@ -96,6 +96,18 @@ def exact_incidence(N, rules, sources, keep=0):
                     if w:
                         for u, v, t, sign in terms:
                             shifts[d*a+u, d*b+v, d*c+t] += sign*w
+    cap_cost = 0
+    for i,j,k,weight in caps:
+        assert all(type(t) is int and t >= 0 for t in (i,j,k,weight))
+        assert i <= j <= k and i+j+k <= N-3
+        order = N-i-j-k
+        bound = comb(order,2)-(order-1)+(order-1)//3
+        shifts = set(permutations((i,j,k)))
+        cap_cost += weight*len(shifts)*bound
+        for h in range(1,order-1):
+            bucket = placements.setdefault(h, Counter())
+            for position in shifts:
+                bucket[position] -= weight
     maximum = 0
     top = []
     for h, shifts in placements.items():
@@ -109,21 +121,21 @@ def exact_incidence(N, rules, sources, keep=0):
             running = 0
             for change in row[:-1]:
                 running += change
-                assert running >= 0
+                assert caps or running >= 0
                 maximum = max(maximum, running)
-                if keep and running:
+                if keep and running > 0:
                     if len(top) < keep:
                         heappush(top, running)
                     elif running > top[0]:
                         heapreplace(top, running)
             assert running+row[-1] == 0
-    return maximum, sum(top)
+    return maximum, sum(top)+cap_cost
 
 
 def verify(cert, catalogs):
     N = cert["host"]
     patch_level = cert.get("square_patches", 0)
-    assert patch_level in (0, 1, 2, 3)
+    assert patch_level in (0, 1, 2, 3, 5, 6)
     sources = {}
     for n, b in cert["sources"]:
         keys, multiplicity, corners = geometry(n)
@@ -153,22 +165,34 @@ def verify(cert, catalogs):
             )
         assert copies == copy_counts[region]
         total += floor*copies
-        patch_minimum = 12 if n==13 and patch_level else 8 if n==12 and patch_level==3 else 0
-        extra = patch_minimum*min(weights) - floor
-        if extra > 0:
-            select = min if kind=="min" else max
-            covered = sum(
-                fits_checked_square(N,n,d,a,b,patch_level)
-                for a in range(Q+1) for b in range(Q-a+1)
-                if lo <= select(a,b,Q-a-b) < hi
-            )
-            total += extra*covered
+        patch_minimum = 12 if n==13 and patch_level else 8 if n==12 and patch_level>=3 else 0
+        thresholds = [patch_minimum] if patch_minimum else []
+        if patch_level >= 6 and n==12:
+            thresholds.append(9)
+        previous = floor
+        for threshold in thresholds:
+            patch_floor = threshold*min(weights)
+            if patch_level >= 5:
+                unseen_floor = max(b+1,threshold)*min(weights)
+                patch_floor = min(chain([unseen_floor], (
+                    sum(weights[i] for i in p) for p in profiles if len(p) >= threshold
+                )))
+            extra = patch_floor - previous
+            if extra > 0:
+                select = min if kind=="min" else max
+                covered = sum(
+                    fits_checked_square(N,n,d,a,b,patch_level,threshold)
+                    for a in range(Q+1) for b in range(Q-a+1)
+                    if lo <= select(a,b,Q-a-b) < hi
+                )
+                total += extra*covered
+            previous = max(previous,patch_floor)
         for (j, a, c, e), w in zip(keys, weights):
             incidence[j*d] += multiplicity[j, a, c, e]*w
     upper = comb(N, 2)-(N-1)+(N-1)//3
     ranked = cert.get("mode") == "ranked"
     if cert.get("mode") in ("exact", "bands", "ranked", "regions"):
-        K, heaviest = exact_incidence(N, cert["rules"], sources, upper if ranked else 0)
+        K, heaviest = exact_incidence(N, cert["rules"], sources, upper if ranked else 0, cert.get("upper_caps", ()))
     else:
         K, heaviest = max(incidence.values()), 0
     ceiling = heaviest if ranked else K*upper

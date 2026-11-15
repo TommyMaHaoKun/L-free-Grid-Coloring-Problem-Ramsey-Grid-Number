@@ -15,14 +15,17 @@ PATCHES = (
     Patch(13, 11, 17, 5, 0, 126, 126),
     Patch(13, 11, 18, 0, 0, 21, 126),
     Patch(12, 7, 18, 3, 3, 30, 1578),
+    Patch(12, 7, 18, 0, 0, 30, 1578),
+    Patch(12, 7, 18, 7, 0, 30, 1578),
+    Patch(12, 8, 18, 3, 3, 60, 11028),
 )
 
 
-def fits_checked_square(host, order, step, a, b, level):
+def fits_checked_square(host, order, step, a, b, level, minimum=0):
     """Test the actual four edges of each candidate ambient square in the host square."""
     left, bottom = 1+a+b, b
     for patch in PATCHES[:level]:
-        if order != patch.order:
+        if order != patch.order or patch.cutoff+1 < minimum:
             continue
         gap = patch.side-(order-1)
         for x,y in ((patch.x,patch.y), (gap-patch.y,gap-patch.x)):
