@@ -90,3 +90,31 @@ At order 13, both the boundary extensions and the interior-only branch are empty
 Every proper $T_{14}$ has **at least twelve** rainbow Ls. A hypothetical coloring with at most eleven and a rainbow touching a boundary would restrict to $T_{13}$ with at most ten, whose catalog is empty. The remaining interior-only case at order 14 was exhausted over the 27 assignments of cells 2, 3 and 4 in zero-based row-major order, after fixing cell 0 to color 0 and the domain of cell 1 to colors 0 and 1. All 1,420,657,038 branch nodes yielded zero colorings. The literal example at order 14 has seventeen.
 
 The unpartitioned portable version of the interior-only search is **./rain_search 14 shell 11 0 0**. An independent full reconstruction from the base catalog is **python verify_triangle_boundary.py ./rain_search ./triangle_extend --target 14 --budget 11 --jobs 4**.
+
+## The order-13 minimizers and the order-14 obstruction
+
+The minimum of eleven on $T_{13}$ is attained by **21** colorings up to geometric symmetry and palette permutations, or **126** up to palette permutations alone. Every proper $T_{14}$ has **at least thirteen** rainbow Ls. A known coloring has seventeen. The [21 canonical colorings](triangle_13_minimizers.json) are stored in row-major order. All six palette-normalized geometric images of every word are distinct.
+
+| Order | Rainbow budget | Geometric and palette orbits |
+|---:|---:|---:|
+| 6 | 4 | 16,330 |
+| 7 | 5 | 497,369 |
+| 8 | 6 | 6,625,801 |
+| 9 | 7 | 24,681,208 |
+| 10 | 8 | 19,798,396 |
+| 11 | 9 | 5,285,641 |
+| 12 | 10 | 296,559 |
+| 13 | 11 | 21 |
+| 14 | 12 | 0 |
+
+Starting at order six, enumerate every proper coloring through four rainbows. At each subsequent order, start a separate exhaustive search for colorings whose rainbow Ls all avoid the three boundary lines. A coloring with a boundary rainbow has an orientation in which the last row touches a rainbow. Deleting this row leaves a proper coloring of the previous order with at least one fewer rainbow.
+
+For a unique parent, normalize palette labels by first appearance and take the lexicographically first orientation among those whose last row touches a rainbow. Enumerate the distinct geometric orientations of each parent and append a row one cell at a time. For row entries at columns $i<j$, the third cell of their new L is the earlier cell at $(n-(j-i),i)$ when the new row is $x=n$. Check all these triples and keep the child only in its chosen eligible orientation. The unrestricted geometric minimum is its stored representative. Every parent here contains at least two colors, so normalizing the parent fixes how all three labels are used in extending it. The two sources of children are disjoint. The initial-word search divides into fixed prefixes after setting the first cell to zero and restricting the second cell to zero or one.
+
+The following commands rebuild both top-order catalogs in one pass, check every saved coloring literally, and compare the order-13 words individually.
+
+~~~sh
+cc -O3 -std=c99 verify_rainbow_neighborhood.c -o rain_search
+cc -O3 -std=c99 verify_triangle_stream.c -o triangle_stream
+python verify_triangle_stream.py ./rain_search ./triangle_stream --jobs 4
+~~~

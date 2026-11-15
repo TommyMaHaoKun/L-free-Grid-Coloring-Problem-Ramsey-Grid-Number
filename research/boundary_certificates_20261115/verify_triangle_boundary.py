@@ -79,7 +79,7 @@ def main():
     parser.add_argument("--jobs", type=int, default=1)
     args = parser.parse_args()
     first = args.target-args.budget+3
-    assert 6 <= first <= args.target <= 14
+    assert 5 <= first <= args.target <= 14
     search, extender = str(Path(args.search).resolve()), str(Path(args.extend).resolve())
     words = seed(search, first, 3, args.jobs)
     print(f"T{first}, budget 3, {len(words):,} geometric and palette orbits", flush=True)

@@ -41,7 +41,7 @@ def profile(word, corners):
 
 def rebuild(n, budget, search, extender, jobs):
     first = n-budget+3
-    assert 6 <= first <= n
+    assert 5 <= first <= n
     words = seed(search, first, 3, jobs)
     for side in range(first+1, n+1):
         bound = 3+side-first

@@ -1,16 +1,17 @@
 /* Enumerate proper triangle colorings with a specified set of new rainbow corners.
    Reference modes: all, shell, or a literal coloring. The optional final
-   argument list emits every representative for the boundary extension proof. */
+   argument list emits witnesses. In shell or free mode, stream [PREFIX]
+   emits each canonical word once on stdout and the branch statistics on stderr. */
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
-enum { MAX_CELLS=100, MAX_EDGES=410, MAX_INC=45, QUEUE=512 };
+enum { MAX_CELLS=110, MAX_EDGES=460, MAX_INC=45, QUEUE=512 };
 enum { EXACTLY_TWO, PROPER, RAINBOW };
-static int shell_mode, budget, list_all, interior[MAX_EDGES];
+static int shell_mode, budget, list_all, stream, interior[MAX_EDGES];
 static int global_mode, orbit_weight=1, coord_x[MAX_CELLS],coord_y[MAX_CELLS];
-static int edge_id[15][15][15], symmetry[6][MAX_EDGES];
-static int cell_count, edge_count, vertices[MAX_EDGES][3], index_at[15][15];
+static int edge_id[16][16][16], symmetry[6][MAX_EDGES];
+static int cell_count, edge_count, vertices[MAX_EDGES][3], index_at[16][16];
 static int incident[MAX_CELLS][MAX_INC], degree[MAX_CELLS];
 static int reference[MAX_CELLS], old_rain[MAX_EDGES], rule[MAX_EDGES];
 static unsigned char support[3][8][8][8][3], colors[MAX_CELLS];
@@ -176,7 +177,15 @@ static void emit_witness(void) {
         word[cell_count]=0;
         if (!g || strcmp(word,best)<0) strcpy(best,word);
     }
-    fprintf(stderr,"witness %s\n",best);
+    if (stream) {
+        for (int v=0; v<cell_count; ++v) {
+            int digit=colors[v]==1 ? 0 : (colors[v]==2 ? 1 : 2);
+            if (best[v]!='0'+digit) return;
+        }
+        puts(best);
+    } else {
+        fprintf(stderr,"witness %s\n",best);
+    }
 }
 
 static void count_colorings(void) {
@@ -236,13 +245,16 @@ static void enumerate_case(int first, int second, int third) {
 }
 
 int main(int argc,char **argv) {
-    if (argc!=6 && argc!=7) return 2;
-    if (argc==7 && strcmp(argv[6],"list")!=0) return 2;
-    list_all=(argc==7);
+    if (argc<6 || argc>8) return 2;
+    stream=argc>=7 && strcmp(argv[6],"stream")==0;
+    list_all=stream || (argc==7 && strcmp(argv[6],"list")==0);
+    if (argc>=7 && !list_all) return 2;
     int side=atoi(argv[1]), number=atoi(argv[3]), lo=atoi(argv[4]), hi=atoi(argv[5]);
-    shell_mode=strcmp(argv[2],"shell")==0;
+    int unrestricted=strcmp(argv[2],"free")==0;
+    shell_mode=unrestricted || strcmp(argv[2],"shell")==0;
     global_mode=shell_mode || strcmp(argv[2],"all")==0;
-    if (side<6 || side>14 || number<0 || (!shell_mode && number>3) || lo<0 || hi<lo) return 2;
+    if (side<5 || side>15 || number<0 || (!shell_mode && number>3) || lo<0 || hi<lo) return 2;
+    if (stream && !shell_mode) return 2;
     if (!global_mode && ((int)strlen(argv[2])!=side*(side-1)/2 ||
         strspn(argv[2],"012")!=strlen(argv[2]))) return 2;
     prepare_supports();
@@ -256,11 +268,17 @@ int main(int argc,char **argv) {
                 int v=vertices[e][j], x=coord_x[v], y=coord_y[v];
                 if (x-y==1 || y==0 || x==side-1) interior[e]=0;
             }
+            if (unrestricted) interior[e]=1;
             rule[e]=interior[e]?PROPER:EXACTLY_TWO;
         }
         memset(colors,7,cell_count);
         restrict_domain(0,1);
         restrict_domain(1,3);
+        if (argc==8) {
+            int length=(int)strlen(argv[7]);
+            if (length>cell_count-2 || strspn(argv[7],"012")!=(size_t)length) return 2;
+            for (int i=0; i<length; ++i) restrict_domain(i+2,1<<(argv[7][i]-'0'));
+        }
         count_colorings();
         cases=1;
     } else {
@@ -276,8 +294,9 @@ int main(int argc,char **argv) {
             }
         }
     }
-    printf("%llu %llu",cases,visits);
-    for (int i=0; i<=edge_count; ++i) if (histogram[i]) printf(" %d:%llu",i,histogram[i]);
-    puts("");
-    return 0;
+    FILE *stats=stream ? stderr : stdout;
+    fprintf(stats,"%llu %llu",cases,visits);
+    for (int i=0; i<=edge_count; ++i) if (histogram[i]) fprintf(stats," %d:%llu",i,histogram[i]);
+    fputc('\n',stats);
+    return ferror(stats) || (stream && ferror(stdout));
 }
