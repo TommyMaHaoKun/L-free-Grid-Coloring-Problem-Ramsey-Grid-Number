@@ -36,3 +36,9 @@ In particular **every order-13 copy of dilation $d$ in the standard host triangl
 Every order-13 triangle of **even dilation** in a proper square contains at least **twelve** rainbows. Write its dilation as $2e$. Its bounding square contains a 23 by 23 lattice at spacing $e$, and the triangular cells occupy positions $(2(x-1),2y)$ in that lattice. This entire enclosing lattice lies inside the bounding square of the original triangle, including when the triangle touches the edge of the host.
 
 A copy with eleven rainbows would realize one of the 126 oriented minimum words. Divide them into six groups of 21 and impose each group at the displayed stride-two positions. The six refutations rule out every group. Run **python verify_square_patches.py /path/to/drat-trim --stride 2 --cache /path/to/proofs** to reconstruct and check these formulas. This adds a forcing condition at every even dilation, including those outside the range $N\ge22d$.
+
+## Thirteen rainbows in an order-13 triangle
+
+All 2,928 oriented words with at most twelve rainbows fail at each of the offsets $(3,3)$, $(6,0)$ and $(0,0)$ in a proper 18 by 18 square. Each check partitions the complete [488-class catalog](triangle_13_through_12.txt.xz) into 61 groups of 48 words and verifies every refutation. Run **python verify_square_patches.py /path/to/drat-trim --cutoff 12 --cache /path/to/proofs**.
+
+In particular, every order-13 triangle of dilation $d$ in the standard triangle of a proper square has at least thirteen rainbows whenever $N\ge23d$. In translation coordinates $a+b+c=N-2-11d$, the offset $(6,0)$ fits whenever $1+a+\min(b,c)\ge6d$. The offset $(0,0)$ or its reflection fits whenever $\max(b,c)\ge6d$. If all fail, addition gives $N-2-11d\le12d-3$. This contradicts the assumed side length. The interior offset also covers positions outside this uniform guarantee.

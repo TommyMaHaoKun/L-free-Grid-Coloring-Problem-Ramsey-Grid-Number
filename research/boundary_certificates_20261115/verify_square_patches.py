@@ -19,6 +19,9 @@ PATCHES = (
     Patch(12, 7, 18, 7, 0, 30, 1578),
     Patch(12, 8, 18, 3, 3, 60, 11028),
     Patch(13, 11, 23, 0, 0, 21, 126, 2),
+    Patch(13, 12, 18, 3, 3, 48, 2928),
+    Patch(13, 12, 18, 6, 0, 48, 2928),
+    Patch(13, 12, 18, 0, 0, 48, 2928),
 )
 
 
@@ -85,11 +88,14 @@ def main():
     parser.add_argument("checker", type=Path, help="drat-trim executable")
     parser.add_argument("--cache", type=Path, help="save or read checked RUP proofs")
     parser.add_argument("--stride", type=int, choices=(1,2), help="check only patches with this triangle spacing")
+    parser.add_argument("--cutoff", type=int, help="check only groups at this rainbow cutoff")
     args = parser.parse_args()
     catalogs = json.loads(lzma.decompress((HERE/"triangle_grid_catalogs.json.xz").read_bytes()))
+    deep = lzma.decompress((HERE/"triangle_13_through_12.txt.xz").read_bytes()).decode("ascii").splitlines()
+    catalogs["13/12"] = deep
     for patch in PATCHES:
         n,b,side,x,y,group,expected,stride = patch
-        if args.stride and stride!=args.stride:
+        if (args.stride and stride!=args.stride) or (args.cutoff is not None and args.cutoff!=b):
             continue
         choices = [(int(k.split("/")[1]),v) for k,v in catalogs.items() if k.startswith(f"{n}/")]
         cutoff, words = max(choices)

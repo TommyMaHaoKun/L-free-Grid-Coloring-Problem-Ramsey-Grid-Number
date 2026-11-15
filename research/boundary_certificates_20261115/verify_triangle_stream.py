@@ -1,5 +1,6 @@
 """Reconstruct the archived order-13 minimizers and the empty catalogs through order 15."""
 import argparse
+import lzma
 import json
 import subprocess
 from collections import Counter
@@ -61,7 +62,17 @@ def main():
     parser.add_argument("search", type=Path)
     parser.add_argument("extend", type=Path)
     parser.add_argument("--jobs", type=int, default=1)
+    parser.add_argument("--order-13-through-12", action="store_true",
+                        help="rebuild all order-13 colorings through twelve rainbows and order 14 through thirteen")
     args = parser.parse_args()
+    if args.order_13_through_12:
+        counts, words = reconstruct(str(args.search.resolve()), str(args.extend.resolve()),
+                                    6, 14, 13, 13, args.jobs)
+        archived = set(lzma.decompress(Path(__file__).with_name("triangle_13_through_12.txt.xz").read_bytes()).splitlines())
+        assert len(archived)==488 and archived==words[13] and not words[14]
+        assert counts[13,11]==21 and counts[13,12]==467
+        assert sum(orbit(13,w) for w in archived)==2928
+        return
     counts, words = reconstruct(str(args.search.resolve()), str(args.extend.resolve()),
                                 6, 15, 13, 13, args.jobs)
     archived = json.loads(Path(__file__).with_name("triangle_13_minimizers.json").read_text())

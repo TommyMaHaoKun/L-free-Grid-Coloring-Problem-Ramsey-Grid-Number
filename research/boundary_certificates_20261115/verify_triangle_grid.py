@@ -62,10 +62,23 @@ def unpack(rule, N):
     else:
         kind = "min"
         lo, hi = band if band else (0, Q//3+1)
-    assert kind in ("min", "max")
-    bound = Q//3+1 if kind == "min" else Q+1
-    assert type(lo) is int and type(hi) is int and 0 <= lo < hi <= bound
+    assert kind in ("min", "max", "both")
+    if kind == "both":
+        lo, hi = tuple(lo), tuple(hi)
+        assert len(lo)==len(hi)==2
+        limits = (Q//3+1, Q+1)
+        assert all(type(v) is int and type(w) is int and 0<=v<w<=z for v,w,z in zip(lo,hi,limits))
+    else:
+        bound = Q//3+1 if kind == "min" else Q+1
+        assert type(lo) is int and type(hi) is int and 0 <= lo < hi <= bound
     return n, d, weights, kind, lo, hi, Q
+
+
+def in_band(kind, lo, hi, a, b, c):
+    if kind=="both":
+        return lo[0]<=min(a,b,c)<hi[0] and lo[1]<=max(a,b,c)<hi[1]
+    value = min(a,b,c) if kind=="min" else max(a,b,c)
+    return lo<=value<hi
 
 
 def translation_terms(Q, kind, lo, hi):
@@ -75,9 +88,13 @@ def translation_terms(Q, kind, lo, hi):
         terms[lo, lo, lo] += 1
         terms[hi, hi, hi] -= 1
     else:
-        for threshold, sign in [(hi, 1), (lo, -1)]:
-            for bits in product((0, 1), repeat=3):
-                terms[tuple(threshold*i for i in bits)] += sign*(-1)**sum(bits)
+        min_thresholds = ((0,1),) if kind=="max" else ((lo[0],1),(hi[0],-1))
+        max_lo, max_hi = (lo,hi) if kind=="max" else (lo[1],hi[1])
+        for smallest, min_sign in min_thresholds:
+            for threshold, sign in [(max_hi,1),(max_lo,-1)]:
+                for bits in product((0,1),repeat=3):
+                    corner = tuple(max(smallest,threshold) if bit else smallest for bit in bits)
+                    terms[corner] += min_sign*sign*(-1)**sum(bits)
     return [(a, b, c, v) for (a, b, c), v in terms.items() if v and a+b+c <= Q]
 
 
@@ -137,7 +154,7 @@ def exact_incidence(N, rules, sources, keep=0, caps=()):
 def verify(cert, catalogs):
     N = cert["host"]
     patch_level = cert.get("square_patches", 0)
-    assert patch_level in (0, 1, 2, 3, 5, 6, 7)
+    assert patch_level in (0, 1, 2, 3, 5, 6, 7, 9, 10)
     sources = {}
     for n, b in cert["sources"]:
         keys, multiplicity, corners = geometry(n)
@@ -160,15 +177,16 @@ def verify(cert, catalogs):
         copies = sum(sign*comb(Q-u-v-t+2, 2) for u, v, t, sign in terms)
         region = Q, kind, lo, hi
         if region not in copy_counts:
-            select = min if kind == "min" else max
             copy_counts[region] = sum(
-                lo <= select(a, b, Q-a-b) < hi
+                in_band(kind,lo,hi,a,b,Q-a-b)
                 for a in range(Q+1) for b in range(Q-a+1)
             )
         assert copies == copy_counts[region]
         total += floor*copies
         patch_minimum = 12 if n==13 and patch_level else 8 if n==12 and patch_level>=3 else 0
         thresholds = [patch_minimum] if patch_minimum else []
+        if patch_level >= 9 and n==13:
+            thresholds.append(13)
         if patch_level >= 6 and n==12:
             thresholds.append(9)
         previous = floor
@@ -181,11 +199,10 @@ def verify(cert, catalogs):
                 )))
             extra = patch_floor - previous
             if extra > 0:
-                select = min if kind=="min" else max
                 covered = sum(
                     fits_checked_square(N,n,d,a,b,patch_level,threshold)
                     for a in range(Q+1) for b in range(Q-a+1)
-                    if lo <= select(a,b,Q-a-b) < hi
+                    if in_band(kind,lo,hi,a,b,Q-a-b)
                 )
                 total += extra*covered
             previous = max(previous,patch_floor)
@@ -210,24 +227,41 @@ def main():
     parser.add_argument("--rebuild", nargs=2, metavar=("SEARCH", "EXTEND"),
                         help="re-enumerate every archived low-rainbow catalog")
     parser.add_argument("--jobs", type=int, default=1)
+    parser.add_argument("--stream-extend", type=Path, help="compiled verify_triangle_stream.c for larger catalog cutoffs")
     parser.add_argument("--rup-checker", type=Path, help="drat-trim for rebuilding empty catalogs above order 15")
     args = parser.parse_args()
     cert = json.loads((ROOT/"triangle_grid_certificate.json").read_text())
     catalogs = json.loads(lzma.decompress((ROOT/"triangle_grid_catalogs.json.xz").read_bytes()))
     if args.rebuild:
         search, extender = (str(Path(p).resolve()) for p in args.rebuild)
-        higher = {(n,b) for n,b in cert["sources"] if n>15}
+        sources = {tuple(row) for row in cert["sources"]}
+        improved = sources & {(15,14),(16,15),(17,16),(18,17)}
+        higher = {(n,b) for n,b in sources if n>15} | improved
         if higher:
             if not args.rup_checker:
-                parser.error("--rebuild needs --rup-checker for the sources above order 15")
-            assert higher <= {(16,14),(17,15),(18,16)}
+                parser.error("--rebuild needs --rup-checker for the interior and boundary proofs")
+            assert higher <= {(16,14),(17,15),(18,16)} | improved
             assert all(catalogs[f"{n}/{b}"]==[] for n,b in higher)
             checker = str(args.rup_checker.resolve())
             subprocess.run([sys.executable,str(ROOT/"verify_order16_interior.py"),checker],check=True)
+            if improved:
+                subprocess.run([sys.executable,str(ROOT/"verify_minimizer_extensions.py"),"--through-12"],check=True)
+                subprocess.run([sys.executable,str(ROOT/"verify_order16_interior.py"),checker,"--improved"],check=True)
             if any(n>=17 for n,_ in higher):
                 subprocess.run([sys.executable,str(ROOT/"verify_rainbow_boundary_layers.py"),checker],check=True)
+        deeper = {(13,12),(14,13)} & sources
+        if deeper or improved:
+            if not args.stream_extend:
+                parser.error("--rebuild needs --stream-extend for the order-13-through-12 enumeration")
+            subprocess.run([sys.executable,str(ROOT/"verify_triangle_stream.py"),search,
+                            str(args.stream_extend.resolve()),"--jobs",str(args.jobs),"--order-13-through-12"],check=True)
+            if (13,12) in deeper:
+                complete = set(lzma.decompress((ROOT/"triangle_13_through_12.txt.xz").read_bytes()).decode("ascii").splitlines())
+                assert complete == set(catalogs["13/12"])
+            if (14,13) in deeper:
+                assert catalogs["14/13"]==[]
         for n, b in cert["sources"]:
-            if n>15:
+            if (n,b) in higher or (n,b) in deeper:
                 continue
             words = rebuild(n, b, search, extender, args.jobs)
             assert {w.decode() for w in words} == set(catalogs[f"{n}/{b}"])

@@ -152,3 +152,31 @@ If a proper $T_{14}$ has an order-13 facet with exactly eleven rainbows, it has 
 The complete order-13 catalog supplies the parents. For each orientation, append the cells in the new row in order. A pair of new positions $i<j$ closes just one L with an old cell, at $(13-j+i,i)$. Thus the search rejects a monochromatic L as soon as its last cell is assigned and records exactly how many new rainbows appear. The [standard-library verifier](verify_minimizer_extensions.py) tries every color branch that can improve the current minimum, then checks each improving witness against all 364 Ls of $T_{14}$. Run **python verify_minimizer_extensions.py**. A separate C enumeration gives the same three class counts.
 
 In particular, in any proper $T_n$ with $n\ge14$ and at most 18 rainbows, **every translated unit-step $T_{13}$ contains at least 12 rainbows**. Every such copy lies in a unit-step $T_{14}$ inside the host: at least one of its three margins is positive, so remove one unit of that margin. The assertion follows from the order-14 result. One sharp weighted inequality is $r_{14}+6r_{13}\ge85$ for each order-13 facet. If the facet has eleven rainbows, the larger triangle has at least nineteen; if it has at least twelve, the larger one has at least thirteen.
+
+## Order 13 through twelve rainbows and order 14 through thirteen
+
+There are **467** further geometric and palette classes at order 13 with exactly twelve rainbow Ls. Each has six orientations up to palette permutation, giving **2,802** oriented colorings. Together with the 21 minimum classes this gives 488 classes and 2,928 oriented colorings through twelve. The complete search at order 14 through thirteen returns the empty set. Thus every proper $T_{14}$ has at least **14** rainbows.
+
+Start with all proper $T_6$ through five rainbows and raise the budget by one at each order. The boundary-deletion recurrence above covers all parents and all cases where every rainbow is interior. The table counts the classes up to geometric symmetry and palette permutations.
+
+| Order | Rainbow cutoff | Classes |
+| ---: | ---: | ---: |
+| 6 | 5 | 23,488 |
+| 7 | 6 | 956,159 |
+| 8 | 7 | 17,090,465 |
+| 9 | 8 | 81,910,838 |
+| 10 | 9 | 76,368,266 |
+| 11 | 10 | 17,372,326 |
+| 12 | 11 | 2,854,757 |
+| 13 | 12 | 488 |
+| 14 | 13 | 0 |
+
+To reproduce the word-for-word comparison with the [archived catalog](triangle_13_through_12.txt.xz), run **python verify_triangle_stream.py ./rain_search ./triangle_stream --jobs 4 --order-13-through-12** with the C executables above.
+
+A proper $T_{14}$ containing a twelve-rainbow facet has at least **17** rainbows, and this is attained. Over the 467 parent classes, the minima 17 through 24 occur respectively 4, 10, 36, 103, 172, 128, 11, and 3 times. Run **python verify_minimizer_extensions.py --through-12** to test every palette-normalized orientation, enumerate its final row, and verify all improving witnesses in literal coordinates. Consequently, if a proper $T_n$ of order at least 14 has at most 16 rainbows, every translated unit-step $T_{13}$ in it contains at least **13**. The eleven-rainbow and twelve-rainbow cases would force at least 19 and 17 respectively in an enclosing $T_{14}$.
+
+## Fourteen through eighteen rainbows at orders 14 through 18
+
+Every proper $T_n$ has at least $n$ rainbow Ls for $14\le n\le18$. The preceding enumeration gives the order-14 base. If a proper $T_{15}$ has at most fourteen rainbows then none touches the boundary: otherwise deleting that side gives a proper $T_{14}$ with at most thirteen. All rainbows therefore lie in its central $T_{12}$. Also every unit-step $T_{13}$ in this host has at least thirteen rainbows, by the extension minima above. In the same exterior-count formula as for the original order-16 result, use the lower bounds 3, 6, 13 and 14 for translated copies of orders 11 through 14 under this total budget. The supplied order-15 refutation excludes a coloring with the stated interior budget.
+
+Now apply the same argument at order 16 with budget fifteen. Deleting a boundary rainbow would leave at most fourteen on $T_{15}$, which the preceding step excludes. The assumption of at most fifteen again forces every $T_{13}$ to have at least thirteen. Use the same lower bounds as above together with fifteen for $T_{15}$, then check the second refutation. Finally each proper $T_{17}$ and $T_{18}$ has a boundary rainbow by the separate boundary proofs, so deletion raises the guaranteed total by one at each step. Run **python verify_order16_interior.py /path/to/drat-trim --improved** and **python verify_rainbow_boundary_layers.py /path/to/drat-trim**.
