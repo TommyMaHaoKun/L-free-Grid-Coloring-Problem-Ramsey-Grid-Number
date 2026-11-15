@@ -2,6 +2,8 @@
 import argparse
 import json
 import lzma
+import subprocess
+import sys
 from heapq import heappush, heapreplace
 from collections import Counter
 from itertools import chain, permutations, product
@@ -135,7 +137,7 @@ def exact_incidence(N, rules, sources, keep=0, caps=()):
 def verify(cert, catalogs):
     N = cert["host"]
     patch_level = cert.get("square_patches", 0)
-    assert patch_level in (0, 1, 2, 3, 5, 6)
+    assert patch_level in (0, 1, 2, 3, 5, 6, 7)
     sources = {}
     for n, b in cert["sources"]:
         keys, multiplicity, corners = geometry(n)
@@ -208,12 +210,25 @@ def main():
     parser.add_argument("--rebuild", nargs=2, metavar=("SEARCH", "EXTEND"),
                         help="re-enumerate every archived low-rainbow catalog")
     parser.add_argument("--jobs", type=int, default=1)
+    parser.add_argument("--rup-checker", type=Path, help="drat-trim for rebuilding empty catalogs above order 15")
     args = parser.parse_args()
     cert = json.loads((ROOT/"triangle_grid_certificate.json").read_text())
     catalogs = json.loads(lzma.decompress((ROOT/"triangle_grid_catalogs.json.xz").read_bytes()))
     if args.rebuild:
         search, extender = (str(Path(p).resolve()) for p in args.rebuild)
+        higher = {(n,b) for n,b in cert["sources"] if n>15}
+        if higher:
+            if not args.rup_checker:
+                parser.error("--rebuild needs --rup-checker for the sources above order 15")
+            assert higher <= {(16,14),(17,15),(18,16)}
+            assert all(catalogs[f"{n}/{b}"]==[] for n,b in higher)
+            checker = str(args.rup_checker.resolve())
+            subprocess.run([sys.executable,str(ROOT/"verify_order16_interior.py"),checker],check=True)
+            if any(n>=17 for n,_ in higher):
+                subprocess.run([sys.executable,str(ROOT/"verify_rainbow_boundary_layers.py"),checker],check=True)
         for n, b in cert["sources"]:
+            if n>15:
+                continue
             words = rebuild(n, b, search, extender, args.jobs)
             assert {w.decode() for w in words} == set(catalogs[f"{n}/{b}"])
             print(f"Reproduced T{n} through {b} rainbows, {len(words):,} orbits.", flush=True)

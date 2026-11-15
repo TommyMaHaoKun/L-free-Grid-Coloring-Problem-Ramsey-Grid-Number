@@ -10,7 +10,7 @@ from verify_rectangle_lines import check
 from verify_triangle_boundary import cost, orientations
 
 HERE = Path(__file__).resolve().parent
-Patch = namedtuple("Patch", "order cutoff side x y group cases")
+Patch = namedtuple("Patch", "order cutoff side x y group cases stride", defaults=(1,))
 PATCHES = (
     Patch(13, 11, 17, 5, 0, 126, 126),
     Patch(13, 11, 18, 0, 0, 21, 126),
@@ -18,6 +18,7 @@ PATCHES = (
     Patch(12, 7, 18, 0, 0, 30, 1578),
     Patch(12, 7, 18, 7, 0, 30, 1578),
     Patch(12, 8, 18, 3, 3, 60, 11028),
+    Patch(13, 11, 23, 0, 0, 21, 126, 2),
 )
 
 
@@ -25,12 +26,13 @@ def fits_checked_square(host, order, step, a, b, level, minimum=0):
     """Test the actual four edges of each candidate ambient square in the host square."""
     left, bottom = 1+a+b, b
     for patch in PATCHES[:level]:
-        if order != patch.order or patch.cutoff+1 < minimum:
+        if order != patch.order or patch.cutoff+1 < minimum or step % patch.stride:
             continue
-        gap = patch.side-(order-1)
+        unit = step//patch.stride
+        gap = patch.side-1-(order-2)*patch.stride
         for x,y in ((patch.x,patch.y), (gap-patch.y,gap-patch.x)):
-            x0, y0 = left-step*x, bottom-step*y
-            last = (patch.side-1)*step
+            x0, y0 = left-unit*x, bottom-unit*y
+            last = (patch.side-1)*unit
             if 0 <= x0 and x0+last < host and 0 <= y0 and y0+last < host:
                 return True
     return False
@@ -48,7 +50,7 @@ def square_formula(patch, words):
             for d in range(1,min(side-x,side-y)):
                 triple = (x*side+y, (x+d)*side+y, (x+d)*side+y+d)
                 clauses.extend([[-1-3*v-c for v in triple] for c in range(3)])
-    slots = [(x-1+patch.x)*side+y+patch.y for x in range(1,patch.order) for y in range(x)]
+    slots = [((x-1)*patch.stride+patch.x)*side+y*patch.stride+patch.y for x in range(1,patch.order) for y in range(x)]
     flags = [3*side*side+1+i for i in range(len(words))]
     clauses.append(flags)
     for flag, word in zip(flags, words):
@@ -82,10 +84,13 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("checker", type=Path, help="drat-trim executable")
     parser.add_argument("--cache", type=Path, help="save or read checked RUP proofs")
+    parser.add_argument("--stride", type=int, choices=(1,2), help="check only patches with this triangle spacing")
     args = parser.parse_args()
     catalogs = json.loads(lzma.decompress((HERE/"triangle_grid_catalogs.json.xz").read_bytes()))
     for patch in PATCHES:
-        n,b,side,x,y,group,expected = patch
+        n,b,side,x,y,group,expected,stride = patch
+        if args.stride and stride!=args.stride:
+            continue
         choices = [(int(k.split("/")[1]),v) for k,v in catalogs.items() if k.startswith(f"{n}/")]
         cutoff, words = max(choices)
         assert cutoff >= b
@@ -96,13 +101,15 @@ def main():
                 forms.update(orientations(n,encoded))
         ordered = sorted(forms)
         assert len(ordered)==expected
-        cache = args.cache/f"square_patch_{n}_{b}_{side}_{x}_{y}_{group}" if args.cache else None
+        folder = (f"square_patch_{n}_{b}_{side}_{x}_{y}_{group}" if stride==1 else
+                  f"scale_patch_{n}_{b}_{side}_{x}_{y}_{stride}_{group}")
+        cache = args.cache/folder if args.cache else None
         if cache:
             cache.mkdir(parents=True,exist_ok=True)
         for start in range(0,expected,group):
             verify_group(args.checker.resolve(),patch,ordered[start:start+group],
                          cache/f"{start}.rup.xz" if cache else None)
-        print(f"Verified {expected} oriented T{n} colorings at offset ({x},{y}) in side {side}.",flush=True)
+        print(f"Verified {expected} oriented T{n} colorings at offset ({x},{y}) in side {side} with spacing {stride}.",flush=True)
 
 
 if __name__ == "__main__":

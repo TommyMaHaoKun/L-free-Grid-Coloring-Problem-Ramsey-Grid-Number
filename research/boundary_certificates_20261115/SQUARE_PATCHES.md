@@ -30,3 +30,9 @@ In particular **every order-13 copy of dilation $d$ in the standard host triangl
 ## Where order 12 gains two rainbows
 
 **If $N\ge24d$, every order-12 triangle of dilation $d$ in the standard $T_N$ of a proper $N$ by $N$ square contains at least eight rainbows.** Write $a+b+c=N-2-10d$. The offsets $(0,0)$ and $(7,7)$ fit if $c\ge7d$ or $b\ge7d$, respectively. The offset $(7,0)$ fits if both $1+a+b$ and $1+a+c$ are at least $7d$. If all three fail, then $a+\min(b,c)\le7d-2$ and $\max(b,c)\le7d-1$. This gives $N-2-10d\le14d-3$, contrary to $N\ge24d$. The offset $(3,3)$ supplies additional placements near the cutoff.
+
+## Even dilations of the order-13 triangle
+
+Every order-13 triangle of **even dilation** in a proper square contains at least **twelve** rainbows. Write its dilation as $2e$. Its bounding square contains a 23 by 23 lattice at spacing $e$, and the triangular cells occupy positions $(2(x-1),2y)$ in that lattice. This entire enclosing lattice lies inside the bounding square of the original triangle, including when the triangle touches the edge of the host.
+
+A copy with eleven rainbows would realize one of the 126 oriented minimum words. Divide them into six groups of 21 and impose each group at the displayed stride-two positions. The six refutations rule out every group. Run **python verify_square_patches.py /path/to/drat-trim --stride 2 --cache /path/to/proofs** to reconstruct and check these formulas. This adds a forcing condition at every even dilation, including those outside the range $N\ge22d$.
