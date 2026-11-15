@@ -118,3 +118,9 @@ cc -O3 -std=c99 verify_rainbow_neighborhood.c -o rain_search
 cc -O3 -std=c99 verify_triangle_stream.c -o triangle_stream
 python verify_triangle_stream.py ./rain_search ./triangle_stream --jobs 4
 ~~~
+
+## The central 13-triangle of a proper 22-triangle
+
+The central copy of $T_{13}$ in every proper $T_{22}$ has **at least twelve** rainbow Ls. The embedding adds $(3,3,3)$ to the barycentric coordinates, or sends $(x,y)$ to $(x+6,y+3)$. Every symmetry of the central copy extends to the whole triangle because its three margins are equal. Thus a coloring with eleven central rainbows would yield an extension of one of the 21 archived words after a geometric symmetry and palette permutation.
+
+The formula imposes one of three colors on each of the 231 cells and forbids all monochromatic directed Ls. It requires that at least one of the 21 canonical words matches the central cells. The archived RUP refutation excludes every such choice in one formula. Run **python verify_triangle_center.py /path/to/drat-trim** to reconstruct the 7,183 clauses and check the supplied proof. This gives a stronger local score for copies with sufficient space around them.
