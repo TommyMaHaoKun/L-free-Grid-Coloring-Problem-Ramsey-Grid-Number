@@ -15,3 +15,5 @@ If the new row follows the rectangle, write \(z_y\) for its color at column \(y\
 For example, the partial last row **.221211.2..0010210211** works, with blanks at \(0,7,9,10\). The checker uses exhaustive branching on the three available colors and validates each returned partial coloring directly on the full square. These counts concern the displayed rectangle with its colors fixed.
 
 Run **python verify_rectangle.py** for both the construction and the two extension counts.
+
+The [whole-line obstruction](RECTANGLE_LINE_BOUNDS.md) proves that extending this rectangle to the square requires changes in at least 14 original rows and 15 columns.

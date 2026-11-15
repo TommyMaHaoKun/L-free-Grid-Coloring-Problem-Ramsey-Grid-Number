@@ -87,4 +87,6 @@ Reproduce with **python verify_triangle_boundary.py ./rain_search ./triangle_ext
 
 At order 13, both the boundary extensions and the interior-only branch are empty. The reference eleven-rainbow coloring thus attains the minimum.
 
-The same recurrence proves that every proper $T_{14}$ has at least eleven rainbow Ls. After the empty $T_{13}$ catalog through nine, the order-14 interior-only search with budget ten is also empty. Reproduce with **--target 14 --budget 10**. The literal example at order 14 has seventeen.
+Every proper $T_{14}$ has **at least twelve** rainbow Ls. A hypothetical coloring with at most eleven and a rainbow touching a boundary would restrict to $T_{13}$ with at most ten, whose catalog is empty. The remaining interior-only case at order 14 was exhausted over the 27 assignments of cells 2, 3 and 4 in zero-based row-major order, after fixing cell 0 to color 0 and the domain of cell 1 to colors 0 and 1. All 1,420,657,038 branch nodes yielded zero colorings. The literal example at order 14 has seventeen.
+
+The unpartitioned portable version of the interior-only search is **./rain_search 14 shell 11 0 0**. An independent full reconstruction from the base catalog is **python verify_triangle_boundary.py ./rain_search ./triangle_extend --target 14 --budget 11 --jobs 4**.
